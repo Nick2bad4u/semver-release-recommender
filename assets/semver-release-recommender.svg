@@ -1,16 +1,98 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
   <title id="title">Semver Release Recommender</title>
-  <desc id="desc">A release timeline leading to patch, minor, and major version decisions.</desc>
-  <rect width="1200" height="630" rx="48" fill="#082f2e"/>
-  <path d="M154 326h642" fill="none" stroke="#99f6e4" stroke-width="28" stroke-linecap="round"/>
-  <circle cx="182" cy="326" r="54" fill="#14b8a6"/>
-  <circle cx="398" cy="326" r="54" fill="#2dd4bf"/>
-  <circle cx="614" cy="326" r="54" fill="#5eead4"/>
-  <path d="M782 326l122-118 122 118-122 118z" fill="#facc15"/>
-  <text x="134" y="214" fill="#ccfbf1" font-family="Arial, Helvetica, sans-serif" font-size="56" font-weight="700">v1.4.2</text>
-  <text x="312" y="452" fill="#ccfbf1" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="700">changes</text>
-  <text x="848" y="312" fill="#042f2e" font-family="Arial, Helvetica, sans-serif" font-size="54" font-weight="800" text-anchor="middle">?</text>
-  <text x="890" y="198" fill="#fef9c3" font-family="Arial, Helvetica, sans-serif" font-size="46" font-weight="700">patch</text>
-  <text x="910" y="476" fill="#fef9c3" font-family="Arial, Helvetica, sans-serif" font-size="46" font-weight="700">minor</text>
-  <text x="1008" y="340" fill="#fef08a" font-family="Arial, Helvetica, sans-serif" font-size="62" font-weight="800">major</text>
+  <desc id="desc">A polished release-analysis graphic showing git evidence flowing into a semantic-version recommendation.</desc>
+  <defs>
+    <linearGradient id="bg" x1="80" y1="40" x2="1120" y2="610" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#06262b"/>
+      <stop offset=".56" stop-color="#073b3a"/>
+      <stop offset="1" stop-color="#111827"/>
+    </linearGradient>
+    <linearGradient id="timeline" x1="142" y1="356" x2="722" y2="356" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2dd4bf"/>
+      <stop offset=".56" stop-color="#7dd3fc"/>
+      <stop offset="1" stop-color="#facc15"/>
+    </linearGradient>
+    <linearGradient id="node" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ccfbf1"/>
+      <stop offset="1" stop-color="#2dd4bf"/>
+    </linearGradient>
+    <linearGradient id="decision" x1="778" y1="118" x2="1074" y2="504" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fef08a"/>
+      <stop offset=".48" stop-color="#facc15"/>
+      <stop offset="1" stop-color="#fb923c"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="22" stdDeviation="18" flood-color="#020617" flood-opacity=".32"/>
+    </filter>
+    <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="0" stdDeviation="10" flood-color="#5eead4" flood-opacity=".38"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="630" rx="48" fill="url(#bg)"/>
+  <path d="M91 517h504M99 248h386M750 82h232M748 555h330" fill="none" stroke="#5eead4" stroke-width="1.5" stroke-linecap="round" opacity=".13"/>
+  <path d="M141 74l-54 54M1114 111l-65 65M166 570l-42-42M1080 557l51-51" fill="none" stroke="#fef08a" stroke-width="3" stroke-linecap="round" opacity=".22"/>
+
+  <text x="84" y="103" fill="#f8fafc" font-family="Segoe UI, Arial, Helvetica, sans-serif" font-size="50" font-weight="800">Semver Release</text>
+  <text x="86" y="147" fill="#a7f3d0" font-family="Segoe UI, Arial, Helvetica, sans-serif" font-size="30" font-weight="700">Recommender</text>
+  <text x="86" y="187" fill="#bae6fd" font-family="Segoe UI, Arial, Helvetica, sans-serif" font-size="24" font-weight="600" opacity=".9">diff evidence to version bump</text>
+
+  <g filter="url(#shadow)">
+    <rect x="84" y="234" width="646" height="252" rx="30" fill="#0f172a" opacity=".58"/>
+    <rect x="85" y="235" width="644" height="250" rx="29" fill="none" stroke="#99f6e4" stroke-width="2" opacity=".2"/>
+  </g>
+
+  <g transform="translate(118 269)">
+    <rect x="0" y="0" width="172" height="58" rx="18" fill="#0d9488"/>
+    <text x="86" y="39" fill="#ecfeff" font-family="Segoe UI, Arial, Helvetica, sans-serif" font-size="29" font-weight="800" text-anchor="middle">v1.4.2</text>
+
+    <rect x="222" y="0" width="136" height="58" rx="18" fill="#164e63"/>
+    <text x="290" y="37" fill="#cffafe" font-family="Segoe UI, Arial, Helvetica, sans-serif" font-size="25" font-weight="800" text-anchor="middle">API</text>
+
+    <rect x="382" y="0" width="136" height="58" rx="18" fill="#4a5568"/>
+    <text x="450" y="37" fill="#f8fafc" font-family="Segoe UI, Arial, Helvetica, sans-serif" font-size="25" font-weight="800" text-anchor="middle">CLI</text>
+  </g>
+
+  <path d="M152 379h542" fill="none" stroke="#042f2e" stroke-width="34" stroke-linecap="round" opacity=".4"/>
+  <path d="M152 379h542" fill="none" stroke="url(#timeline)" stroke-width="24" stroke-linecap="round" filter="url(#softGlow)"/>
+  <path d="M698 379l-44-28v56z" fill="#facc15"/>
+
+  <g font-family="Segoe UI, Arial, Helvetica, sans-serif" text-anchor="middle">
+    <g>
+      <circle cx="178" cy="379" r="45" fill="#0f766e"/>
+      <circle cx="178" cy="379" r="31" fill="url(#node)"/>
+      <text x="178" y="455" fill="#ccfbf1" font-size="22" font-weight="800">PATCH</text>
+    </g>
+    <g>
+      <circle cx="374" cy="379" r="45" fill="#155e75"/>
+      <circle cx="374" cy="379" r="31" fill="#7dd3fc"/>
+      <text x="374" y="455" fill="#e0f2fe" font-size="22" font-weight="800">MINOR</text>
+    </g>
+    <g>
+      <circle cx="570" cy="379" r="45" fill="#854d0e"/>
+      <circle cx="570" cy="379" r="31" fill="#fef08a"/>
+      <text x="570" y="455" fill="#fef9c3" font-size="22" font-weight="800">MAJOR</text>
+    </g>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="776" y="96" width="340" height="438" rx="36" fill="#f8fafc"/>
+    <rect x="790" y="110" width="312" height="410" rx="28" fill="#0f172a"/>
+  </g>
+  <text x="946" y="163" fill="#bae6fd" font-family="Segoe UI, Arial, Helvetica, sans-serif" font-size="24" font-weight="800" text-anchor="middle">RECOMMENDED BUMP</text>
+
+  <g filter="url(#softGlow)">
+    <path d="M946 213l101 101-101 101-101-101z" fill="url(#decision)"/>
+    <path d="M946 235l79 79-79 79-79-79z" fill="none" stroke="#fff7ed" stroke-width="6" opacity=".55"/>
+  </g>
+  <text x="946" y="332" fill="#111827" font-family="Segoe UI, Arial, Helvetica, sans-serif" font-size="46" font-weight="900" text-anchor="middle">MINOR</text>
+
+  <g font-family="Segoe UI, Arial, Helvetica, sans-serif" font-size="21" font-weight="800" text-anchor="middle">
+    <rect x="827" y="452" width="88" height="42" rx="14" fill="#134e4a"/>
+    <text x="871" y="480" fill="#ccfbf1">patch</text>
+    <rect x="922" y="452" width="88" height="42" rx="14" fill="#facc15"/>
+    <text x="966" y="480" fill="#111827">minor</text>
+    <rect x="1017" y="452" width="72" height="42" rx="14" fill="#7f1d1d"/>
+    <text x="1053" y="480" fill="#fee2e2">major</text>
+  </g>
 </svg>

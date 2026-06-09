@@ -1,12 +1,61 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-labelledby="title desc">
   <title id="title">Semver Release Recommender</title>
-  <desc id="desc">A version decision marker on a release timeline.</desc>
-  <rect width="400" height="400" rx="64" fill="#082f2e"/>
-  <path d="M78 205h172" fill="none" stroke="#99f6e4" stroke-width="24" stroke-linecap="round"/>
-  <circle cx="92" cy="205" r="34" fill="#14b8a6"/>
-  <circle cx="178" cy="205" r="34" fill="#5eead4"/>
-  <path d="M244 205l54-54 54 54-54 54z" fill="#facc15"/>
-  <text x="298" y="225" fill="#042f2e" font-family="Arial, Helvetica, sans-serif" font-size="54" font-weight="800" text-anchor="middle">?</text>
-  <text x="200" y="105" fill="#ccfbf1" font-family="Arial, Helvetica, sans-serif" font-size="54" font-weight="800" text-anchor="middle">1.2.3</text>
-  <text x="200" y="320" fill="#fef9c3" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="700" text-anchor="middle">semver</text>
+  <desc id="desc">A compact semantic-version release recommendation icon.</desc>
+  <defs>
+    <linearGradient id="bg" x1="42" y1="24" x2="358" y2="384" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#06262b"/>
+      <stop offset=".55" stop-color="#073b3a"/>
+      <stop offset="1" stop-color="#111827"/>
+    </linearGradient>
+    <linearGradient id="line" x1="62" y1="218" x2="238" y2="218" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2dd4bf"/>
+      <stop offset=".55" stop-color="#7dd3fc"/>
+      <stop offset="1" stop-color="#facc15"/>
+    </linearGradient>
+    <linearGradient id="mark" x1="240" y1="118" x2="354" y2="278" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fef08a"/>
+      <stop offset=".52" stop-color="#facc15"/>
+      <stop offset="1" stop-color="#fb923c"/>
+    </linearGradient>
+    <filter id="shadow" x="-18%" y="-18%" width="136%" height="140%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="12" stdDeviation="10" flood-color="#020617" flood-opacity=".35"/>
+    </filter>
+    <filter id="glow" x="-35%" y="-35%" width="170%" height="170%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#5eead4" flood-opacity=".35"/>
+    </filter>
+  </defs>
+
+  <rect width="400" height="400" rx="64" fill="url(#bg)"/>
+  <path d="M57 78l-30 30M348 70l-40 40M67 333l-31-31M340 334l35-35" fill="none" stroke="#fef08a" stroke-width="3" stroke-linecap="round" opacity=".2"/>
+
+  <g filter="url(#shadow)">
+    <rect x="58" y="64" width="182" height="58" rx="19" fill="#0d9488"/>
+    <text x="149" y="102" fill="#ecfeff" font-family="Segoe UI, Arial, Helvetica, sans-serif" font-size="29" font-weight="900" text-anchor="middle">v1.4</text>
+  </g>
+
+  <path d="M74 222h154" fill="none" stroke="#042f2e" stroke-width="33" stroke-linecap="round" opacity=".42"/>
+  <path d="M74 222h154" fill="none" stroke="url(#line)" stroke-width="23" stroke-linecap="round" filter="url(#glow)"/>
+  <path d="M236 222l-37-24v48z" fill="#facc15"/>
+
+  <g>
+    <circle cx="82" cy="222" r="37" fill="#0f766e"/>
+    <circle cx="82" cy="222" r="24" fill="#99f6e4"/>
+    <circle cx="154" cy="222" r="37" fill="#155e75"/>
+    <circle cx="154" cy="222" r="24" fill="#7dd3fc"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <path d="M295 125l83 83-83 83-83-83z" fill="url(#mark)"/>
+    <path d="M295 148l60 60-60 60-60-60z" fill="none" stroke="#fff7ed" stroke-width="6" opacity=".55"/>
+  </g>
+  <text x="295" y="217" fill="#111827" font-family="Segoe UI, Arial, Helvetica, sans-serif" font-size="37" font-weight="900" text-anchor="middle">MIN</text>
+
+  <g font-family="Segoe UI, Arial, Helvetica, sans-serif" font-size="15" font-weight="900" text-anchor="middle">
+    <rect x="67" y="306" width="76" height="38" rx="14" fill="#134e4a"/>
+    <text x="105" y="330" fill="#ccfbf1">PATCH</text>
+    <rect x="162" y="306" width="76" height="38" rx="14" fill="#facc15"/>
+    <text x="200" y="330" fill="#111827">MINOR</text>
+    <rect x="257" y="306" width="76" height="38" rx="14" fill="#7f1d1d"/>
+    <text x="295" y="330" fill="#fee2e2">MAJOR</text>
+  </g>
 </svg>
