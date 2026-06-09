@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-labelledby="title desc">
+  <title id="title">Semver Release Recommender</title>
+  <desc id="desc">A version decision marker on a release timeline.</desc>
+  <rect width="400" height="400" rx="64" fill="#082f2e"/>
+  <path d="M78 205h172" fill="none" stroke="#99f6e4" stroke-width="24" stroke-linecap="round"/>
+  <circle cx="92" cy="205" r="34" fill="#14b8a6"/>
+  <circle cx="178" cy="205" r="34" fill="#5eead4"/>
+  <path d="M244 205l54-54 54 54-54 54z" fill="#facc15"/>
+  <text x="298" y="225" fill="#042f2e" font-family="Arial, Helvetica, sans-serif" font-size="54" font-weight="800" text-anchor="middle">?</text>
+  <text x="200" y="105" fill="#ccfbf1" font-family="Arial, Helvetica, sans-serif" font-size="54" font-weight="800" text-anchor="middle">1.2.3</text>
+  <text x="200" y="320" fill="#fef9c3" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="700" text-anchor="middle">semver</text>
+</svg>

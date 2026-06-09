@@ -1,0 +1,15 @@
+description: "Semver Release Recommender Skill for analyzing release changes and recommending patch, minor, or major version bumps."
+plugins:
+    - "jekyll-admin"
+    - "jekyll-algolia"
+    - "jekyll-archives"
+    - "jekyll-feed"
+    - "jekyll-language-plugin"
+    - "jekyll-loading-lazy"
+    - "jekyll-mentions"
+    - "jekyll-paginate"
+    - "jekyll-seo-tag"
+    - "jekyll-sitemap"
+remote_theme: "pages-themes/hacker@v0.2.0"
+title: "Nick2bad4u - Semver Release Recommender Skill"
+url: "https://nick2bad4u.github.io/semver-release-recommender" # the base hostname & protocol for your site

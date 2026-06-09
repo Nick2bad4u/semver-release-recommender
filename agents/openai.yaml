@@ -1,0 +1,7 @@
+interface:
+    brand_color: "#0F766E"
+    default_prompt: "Use $semver-release-recommender to inspect changes since the last release and recommend the correct patch, minor, or major bump."
+    display_name: "Semver Release Recommender"
+    icon_large: "./assets/semver-release-recommender.svg"
+    icon_small: "./assets/semver-release-recommender-small.svg"
+    short_description: "Recommend semver bumps from release diffs"

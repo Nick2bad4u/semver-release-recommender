@@ -1,0 +1,77 @@
+{
+    "name": "semver-release-recommender-skill",
+    "version": "1.0.0",
+    "private": false,
+    "description": "Codex skill for analyzing release changes and recommending a semantic version bump.",
+    "keywords": [
+        "agent-skill",
+        "agent-skills",
+        "ai-agent",
+        "codex",
+        "openai",
+        "release",
+        "semantic-versioning",
+        "semver",
+        "universal",
+        "versioning"
+    ],
+    "homepage": "https://github.com/Nick2bad4u/semver-release-recommender#readme",
+    "bugs": {
+        "url": "https://github.com/Nick2bad4u/semver-release-recommender/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Nick2bad4u/semver-release-recommender.git"
+    },
+    "license": "Unlicense",
+    "author": "Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> (https://github.com/Nick2bad4u)",
+    "contributors": [
+        {
+            "name": "Nick2bad4u",
+            "email": "20943337+Nick2bad4u@users.noreply.github.com",
+            "url": "https://github.com/Nick2bad4u"
+        }
+    ],
+    "type": "module",
+    "files": [
+        "SKILL.md",
+        "LICENSE.txt",
+        "agents/",
+        "assets/",
+        "scripts/analyze_release_semver.py",
+        "CHANGELOG.md",
+        "CONTRIBUTING.md",
+        "README.md",
+        "SECURITY.md"
+    ],
+    "scripts": {
+        "lint": "npx eslint .",
+        "lint:gitleaks": "gitleaks dir --config .gitleaks.toml .",
+        "lint:package-json": "npmPkgJsonLint . --config .npmpackagejsonlintrc.json",
+        "lint:yamllint": "yamllint -c .yamllint .",
+        "pack:dry-run": "npm pack --dry-run",
+        "publish:local": "npm run release:verify && npm publish --access public",
+        "release:verify": "npm run validate && npm run pack:dry-run",
+        "validate": "node tools/validate-skill-package.mjs && python -c \"from pathlib import Path; compile(Path('scripts/analyze_release_semver.py').read_text(encoding='utf-8'), 'scripts/analyze_release_semver.py', 'exec')\""
+    },
+    "devDependencies": {
+        "eslint-config-nick2bad4u": "^1.2.7",
+        "gitleaks-config-nick2bad4u": "^1.0.2",
+        "npm-package-json-lint": "^10.4.0",
+        "npm-package-json-lint-config-nick2bad4u": "^1.0.2",
+        "prettier": "^3.8.3",
+        "prettier-config-nick2bad4u": "^1.0.14",
+        "yamllint-config-nick2bad4u": "^1.0.1"
+    },
+    "engines": {
+        "node": ">=22.14"
+    },
+    "publishConfig": {
+        "provenance": true
+    },
+    "codexSkill": {
+        "name": "semver-release-recommender",
+        "path": ".",
+        "githubReleaseAssetPrefix": "semver-release-recommender-skill"
+    }
+}

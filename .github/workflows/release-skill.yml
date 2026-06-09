@@ -1,0 +1,189 @@
+# yaml-language-server: $schema=https://www.schemastore.org/github-workflow.json
+name: "Release Skill Bundle"
+
+run-name: "Release Skill Bundle • ${{ github.ref_name || inputs.version || inputs.release_type }} @${{ github.actor }}"
+
+on:
+    push:
+        tags:
+            - "v*"
+    workflow_dispatch:
+        inputs:
+            release_type:
+                description: "Release bump type"
+                required: true
+                default: "patch"
+                type: "choice"
+                options:
+                    - "patch"
+                    - "minor"
+                    - "major"
+            version:
+                description: "Explicit release version in x.y.z format (overrides release_type)"
+                required: false
+                type: "string"
+            ref:
+                description: "Branch to release from when running manually"
+                required: false
+                default: "main"
+                type: "string"
+
+defaults:
+    run:
+        shell: "bash"
+
+concurrency:
+    group: "release-skill-${{ github.ref || inputs.version || inputs.release_type }}"
+    cancel-in-progress: true
+
+jobs:
+    release:
+        name: "Package and publish skill"
+        runs-on: "ubuntu-latest"
+        timeout-minutes: 20
+        permissions:
+            contents: "write"
+            id-token: "write"
+
+        steps:
+            - name: "Harden Runner"
+              uses: "step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e" # v2.14.2
+              with:
+                  egress-policy: "audit"
+
+            - name: "Checkout repository"
+              uses: "actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd" # v6.0.2
+              with:
+                  fetch-depth: 0
+                  ref: "${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.ref }}"
+
+            - name: "Setup Node.js"
+              uses: "actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903" # v6.0.0
+              with:
+                  node-version: "24"
+                  registry-url: "https://registry.npmjs.org"
+                  package-manager-cache: false
+
+            - name: "Resolve release tag"
+              id: "vars"
+              run: |
+                  if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+                    EXPLICIT_VERSION="${{ inputs.version }}"
+                    RELEASE_TYPE="${{ inputs.release_type }}"
+
+                    if [ -n "${EXPLICIT_VERSION}" ]; then
+                      if ! [[ "${EXPLICIT_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                        echo "version must be in x.y.z format" >&2
+                        exit 1
+                      fi
+                      NEXT_VERSION="${EXPLICIT_VERSION}"
+                    else
+                      LATEST_TAG="$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n 1)"
+
+                      if [ -n "${LATEST_TAG}" ]; then
+                        BASE_VERSION="${LATEST_TAG#v}"
+                      else
+                        BASE_VERSION="$(node -p "require('./package.json').version")"
+                      fi
+
+                      IFS='.' read -r MAJOR MINOR PATCH <<< "${BASE_VERSION}"
+
+                      case "${RELEASE_TYPE}" in
+                        patch)
+                          PATCH=$((PATCH + 1))
+                          ;;
+                        minor)
+                          MINOR=$((MINOR + 1))
+                          PATCH=0
+                          ;;
+                        major)
+                          MAJOR=$((MAJOR + 1))
+                          MINOR=0
+                          PATCH=0
+                          ;;
+                        *)
+                          echo "Unsupported release_type: ${RELEASE_TYPE}" >&2
+                          exit 1
+                          ;;
+                      esac
+
+                      NEXT_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+                    fi
+
+                    TAG="v${NEXT_VERSION}"
+                  else
+                    TAG="${GITHUB_REF_NAME}"
+                  fi
+
+                  if ! [[ "${TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                    echo "Resolved tag '${TAG}' is not in vX.Y.Z format" >&2
+                    exit 1
+                  fi
+
+                  TARGET="$(git rev-parse HEAD)"
+                  VERSION="${TAG#v}"
+                  ASSET="semver-release-recommender-skill-${TAG}.zip"
+
+                  {
+                    echo "tag=${TAG}"
+                    echo "version=${VERSION}"
+                    echo "target=${TARGET}"
+                    echo "asset=${ASSET}"
+                  } >> "$GITHUB_OUTPUT"
+
+            - name: "Prepare npm package version"
+              run: "npm version --no-git-tag-version '${{ steps.vars.outputs.version }}'"
+
+            - name: "Validate npm package"
+              run: "npm run release:verify"
+
+            - name: "Generate release notes"
+              id: "git-cliff"
+              uses: "orhun/git-cliff-action@f50e11560dce63f7c33227798f90b924471a88b5" # v4
+              with:
+                  config: "cliff.toml"
+                  args: "--verbose --tag ${{ steps.vars.outputs.tag }} --strip header"
+              env:
+                  OUTPUT: "release-notes.md"
+                  GITHUB_REPO: "${{ github.repository }}"
+
+            - name: "Build release bundle"
+              run: |
+                  mkdir -p dist
+                  zip -r "dist/${{ steps.vars.outputs.asset }}" \
+                    SKILL.md LICENSE.txt agents assets scripts/analyze_release_semver.py \
+                    README.md LICENSE SECURITY.md CHANGELOG.md CONTRIBUTING.md
+
+            - name: "Upload workflow artifact"
+              uses: "actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f" # v7.0.0
+              with:
+                  name: "${{ steps.vars.outputs.asset }}"
+                  path: "dist/${{ steps.vars.outputs.asset }}"
+                  if-no-files-found: "error"
+                  retention-days: 7
+
+            - name: "Publish npm package"
+              run: |
+                  PACKAGE_NAME="$(node -p "require('./package.json').name")"
+                  VERSION="${{ steps.vars.outputs.version }}"
+
+                  if npm view "${PACKAGE_NAME}@${VERSION}" version >/dev/null 2>&1; then
+                    echo "${PACKAGE_NAME}@${VERSION} is already published; skipping npm publish."
+                  else
+                    npm publish --access public
+                  fi
+
+            - name: "Publish GitHub release asset"
+              env:
+                  GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+                  TAG: "${{ steps.vars.outputs.tag }}"
+                  ASSET: "dist/${{ steps.vars.outputs.asset }}"
+                  NOTES: "${{ steps.git-cliff.outputs.changelog }}"
+                  TARGET: "${{ steps.vars.outputs.target }}"
+              run: |
+                  if gh release view "$TAG" >/dev/null 2>&1; then
+                    gh release edit "$TAG" --notes-file "$NOTES"
+                    gh release upload "$TAG" "$ASSET" --clobber
+                  else
+                    gh release create "$TAG" "$ASSET" --target "$TARGET" --title "$TAG" --notes-file "$NOTES"
+                  fi
