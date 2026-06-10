@@ -98,6 +98,7 @@ for (const requiredFile of [
     "agents/",
     "assets/",
     "scripts/analyze_release_semver.py",
+    "tests/test_analyze_release_semver.py",
     "README.md",
     "CHANGELOG.md",
     "SECURITY.md",
@@ -113,6 +114,7 @@ for (const forbiddenFile of [
     "dist/",
     "tools/",
     "scripts/__pycache__/",
+    "tests/__pycache__/",
 ]) {
     assert(
         !pkg.files?.some((entry) => entry.startsWith(forbiddenFile)),
@@ -157,6 +159,7 @@ await Promise.all([
     assertFile(skillRelative(stripCurrentDirectoryPrefix(largeIcon))),
     assertFile(skillRelative("LICENSE.txt")),
     assertFile(skillRelative("scripts/analyze_release_semver.py")),
+    assertFile(skillRelative("tests/test_analyze_release_semver.py")),
 ]);
 
 console.log(`Validated ${pkg.name} skill package metadata.`);

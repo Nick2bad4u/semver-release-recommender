@@ -13,7 +13,15 @@ from pathlib import Path
 from typing import Any
 
 
-SEMVER_TAG = re.compile(r"^v?(\d+)\.(\d+)\.(\d+)(?:[-+].*)?$")
+SEMVER_TAG = re.compile(
+    r"^v?"
+    r"(?P<major>0|[1-9]\d*)\."
+    r"(?P<minor>0|[1-9]\d*)\."
+    r"(?P<patch>0|[1-9]\d*)"
+    r"(?P<prerelease>-(?:0|[1-9]\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)"
+    r"(?:\.(?:0|[1-9]\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*)?"
+    r"(?P<build>\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$"
+)
 BREAKING_FOOTER = re.compile(r"(?im)^BREAKING(?:[ -]CHANGE)?:")
 CONVENTIONAL = re.compile(
     r"^(?P<type>[a-zA-Z]+)(?:\([^)]+\))?(?P<breaking>!)?:\s+(?P<subject>.+)$"
@@ -58,30 +66,37 @@ def run_git(
     return GitResult(stdout, stderr)
 
 
-def semver_key(tag: str) -> tuple[int, int, int]:
+def semver_key(tag: str) -> tuple[int, int, int, int, str]:
     match = SEMVER_TAG.match(tag)
     if not match:
-        return (-1, -1, -1)
-    return tuple(int(part) for part in match.groups())
+        return (-1, -1, -1, -1, "")
+    return (
+        int(match.group("major")),
+        int(match.group("minor")),
+        int(match.group("patch")),
+        0 if match.group("build") else 1,
+        tag,
+    )
 
 
 def latest_semver_tag(target: str) -> str | None:
-    result = run_git(["tag", "--merged", target, "--list", "v[0-9]*.[0-9]*.[0-9]*"])
-    tags = [line.strip() for line in result.stdout.splitlines() if SEMVER_TAG.match(line.strip())]
-    if not tags:
-        result = run_git(["tag", "--merged", target, "--list", "[0-9]*.[0-9]*.[0-9]*"])
-        tags = [line.strip() for line in result.stdout.splitlines() if SEMVER_TAG.match(line.strip())]
+    result = run_git(["tag", "--merged", target, "--list"])
+    tags = []
+    for line in result.stdout.splitlines():
+        tag = line.strip()
+        match = SEMVER_TAG.match(tag)
+        if match and not match.group("prerelease"):
+            tags.append(tag)
     return max(tags, key=semver_key) if tags else None
 
 
 def commit_rows(revision_range: str) -> list[dict[str, str]]:
     output = run_git(
         ["log", "--reverse", "--format=%H%x00%h%x00%s%x00%b%x00", revision_range],
-        check=False,
         strip_output=False,
     ).stdout
     rows: list[dict[str, str]] = []
-    fields = [field.removeprefix("\n") for field in output.split("\x00")]
+    fields = output.split("\x00")
     if fields and fields[-1] == "":
         fields.pop()
     for index in range(0, len(fields) - 3, 4):

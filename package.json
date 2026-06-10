@@ -39,6 +39,7 @@
         "agents/",
         "assets/",
         "scripts/analyze_release_semver.py",
+        "tests/test_analyze_release_semver.py",
         "CHANGELOG.md",
         "CONTRIBUTING.md",
         "README.md",
@@ -52,8 +53,9 @@
         "pack:dry-run": "npm pack --dry-run",
         "publish:local": "npm run release:verify && npm publish --access public",
         "release:verify": "npm run validate && npm run pack:dry-run",
+        "test": "python -m unittest discover -s tests -p \"test_*.py\"",
         "update-deps": "npx ncu -i --install never && npm update --force && npm install --force",
-        "validate": "node tools/validate-skill-package.mjs && python -c \"from pathlib import Path; compile(Path('scripts/analyze_release_semver.py').read_text(encoding='utf-8'), 'scripts/analyze_release_semver.py', 'exec')\""
+        "validate": "node tools/validate-skill-package.mjs && python -c \"from pathlib import Path; compile(Path('scripts/analyze_release_semver.py').read_text(encoding='utf-8'), 'scripts/analyze_release_semver.py', 'exec')\" && npm run test"
     },
     "devDependencies": {
         "eslint-config-nick2bad4u": "^1.2.9",
