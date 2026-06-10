@@ -29,6 +29,7 @@ PUBLIC_SURFACE_PATTERNS = (
     re.compile(r"(^|/)(src|lib|bin|cli|schemas?|api|types?|docs?)/"),
     re.compile(r"\.(d\.ts|schema\.json|proto|graphql|openapi\.(json|ya?ml))$", re.I),
 )
+EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 
 
 @dataclass(frozen=True)
@@ -37,10 +38,14 @@ class GitResult:
     stderr: str
 
 
-def run_git(args: list[str], *, check: bool = True) -> GitResult:
+def run_git(
+    args: list[str], *, check: bool = True, strip_output: bool = True
+) -> GitResult:
     completed = subprocess.run(
         ["git", *args],
         check=False,
+        encoding="utf-8",
+        errors="replace",
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
@@ -48,7 +53,9 @@ def run_git(args: list[str], *, check: bool = True) -> GitResult:
     if check and completed.returncode != 0:
         message = completed.stderr.strip() or completed.stdout.strip()
         raise RuntimeError(f"git {' '.join(args)} failed: {message}")
-    return GitResult(completed.stdout.strip(), completed.stderr.strip())
+    stdout = completed.stdout.strip() if strip_output else completed.stdout
+    stderr = completed.stderr.strip() if strip_output else completed.stderr
+    return GitResult(stdout, stderr)
 
 
 def semver_key(tag: str) -> tuple[int, int, int]:
@@ -69,18 +76,16 @@ def latest_semver_tag(target: str) -> str | None:
 
 def commit_rows(revision_range: str) -> list[dict[str, str]]:
     output = run_git(
-        ["log", "--reverse", "--format=%H%x09%h%x09%s%x09%b%x1e", revision_range],
+        ["log", "--reverse", "--format=%H%x00%h%x00%s%x00%b%x00", revision_range],
         check=False,
+        strip_output=False,
     ).stdout
     rows: list[dict[str, str]] = []
-    for record in output.split("\x1e"):
-        record = record.strip("\n")
-        if not record:
-            continue
-        parts = record.split("\t", 3)
-        while len(parts) < 4:
-            parts.append("")
-        full_hash, short_hash, subject, body = parts
+    fields = [field.removeprefix("\n") for field in output.split("\x00")]
+    if fields and fields[-1] == "":
+        fields.pop()
+    for index in range(0, len(fields) - 3, 4):
+        full_hash, short_hash, subject, body = fields[index : index + 4]
         rows.append(
             {
                 "hash": full_hash.strip(),
@@ -94,28 +99,42 @@ def commit_rows(revision_range: str) -> list[dict[str, str]]:
 
 def changed_files(base: str | None, target: str) -> list[dict[str, str]]:
     if base:
-        args = ["diff", "--name-status", f"{base}..{target}"]
+        args = ["diff", "--name-status", "-z", f"{base}..{target}"]
     else:
-        empty_tree = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
-        args = ["diff", "--name-status", empty_tree, target]
-    output = run_git(args).stdout
+        args = ["diff", "--name-status", "-z", EMPTY_TREE, target]
+    output = run_git(args, strip_output=False).stdout
     files: list[dict[str, str]] = []
-    for line in output.splitlines():
-        parts = line.split("\t")
-        if len(parts) >= 2:
-            files.append({"status": parts[0], "path": parts[-1]})
+    fields = output.split("\x00")
+    if fields and fields[-1] == "":
+        fields.pop()
+    index = 0
+    while index < len(fields):
+        status = fields[index]
+        index += 1
+        if not status or index >= len(fields):
+            continue
+        if status.startswith(("R", "C")):
+            if index + 1 >= len(fields):
+                break
+            old_path = fields[index]
+            new_path = fields[index + 1]
+            index += 2
+            files.append({"status": status, "old_path": old_path, "path": new_path})
+            continue
+        path = fields[index]
+        index += 1
+        files.append({"status": status, "path": path})
     return files
 
 
 def diff_stat(base: str | None, target: str) -> str:
     if base:
         return run_git(["diff", "--stat", f"{base}..{target}"]).stdout
-    empty_tree = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
-    return run_git(["diff", "--stat", empty_tree, target]).stdout
+    return run_git(["diff", "--stat", EMPTY_TREE, target]).stdout
 
 
-def package_version() -> str | None:
-    package_json = Path("package.json")
+def package_version(repository_root: Path) -> str | None:
+    package_json = repository_root / "package.json"
     if not package_json.exists():
         return None
     try:
@@ -151,12 +170,19 @@ def classify_commits(commits: list[dict[str, str]]) -> dict[str, list[str]]:
 
 
 def public_surface_files(files: list[dict[str, str]]) -> list[str]:
-    paths = [entry["path"].replace("\\", "/") for entry in files]
-    return [
-        path
-        for path in paths
-        if any(pattern.search(path) for pattern in PUBLIC_SURFACE_PATTERNS)
-    ]
+    candidates: list[str] = []
+    for entry in files:
+        for key in ("old_path", "path"):
+            path = entry.get(key)
+            if path is not None:
+                candidates.append(path.replace("\\", "/"))
+    return list(
+        dict.fromkeys(
+            path
+            for path in candidates
+            if any(pattern.search(path) for pattern in PUBLIC_SURFACE_PATTERNS)
+        )
+    )
 
 
 def summarize(data: dict[str, Any]) -> str:
@@ -207,6 +233,7 @@ def main() -> int:
 
     try:
         root = run_git(["rev-parse", "--show-toplevel"]).stdout
+        repository_root = Path(root)
         target_commit = run_git(["rev-parse", args.target]).stdout
         base = args.base_tag or latest_semver_tag(args.target)
         revision_range = f"{base}..{args.target}" if base else args.target
@@ -218,7 +245,7 @@ def main() -> int:
             "base_tag": base,
             "target": args.target,
             "target_commit": target_commit,
-            "package_version": package_version(),
+            "package_version": package_version(repository_root),
             "commit_count": len(commits),
             "commits": commits,
             "changed_file_count": len(files),
