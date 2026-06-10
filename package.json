@@ -45,22 +45,23 @@
         "SECURITY.md"
     ],
     "scripts": {
-        "lint": "npx eslint .",
+        "lint": "eslint --cache --cache-strategy content --cache-location .cache/.eslintcache",
         "lint:gitleaks": "gitleaks dir --config .gitleaks.toml .",
         "lint:package-json": "npmPkgJsonLint . --config .npmpackagejsonlintrc.json",
         "lint:yamllint": "yamllint -c .yamllint .",
         "pack:dry-run": "npm pack --dry-run",
         "publish:local": "npm run release:verify && npm publish --access public",
         "release:verify": "npm run validate && npm run pack:dry-run",
+        "update-deps": "npx ncu -i --install never && npm update --force && npm install --force",
         "validate": "node tools/validate-skill-package.mjs && python -c \"from pathlib import Path; compile(Path('scripts/analyze_release_semver.py').read_text(encoding='utf-8'), 'scripts/analyze_release_semver.py', 'exec')\""
     },
     "devDependencies": {
-        "eslint-config-nick2bad4u": "^1.2.7",
+        "eslint-config-nick2bad4u": "^1.2.9",
         "gitleaks-config-nick2bad4u": "^1.0.2",
         "npm-package-json-lint": "^10.4.0",
         "npm-package-json-lint-config-nick2bad4u": "^1.0.2",
-        "prettier": "^3.8.3",
-        "prettier-config-nick2bad4u": "^1.0.14",
+        "prettier": "^3.8.4",
+        "prettier-config-nick2bad4u": "^1.0.16",
         "yamllint-config-nick2bad4u": "^1.0.1"
     },
     "engines": {

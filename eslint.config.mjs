@@ -6,7 +6,9 @@ const config = [
         ignores: ["tools/**/*.mjs"],
         name: "Local validation tools",
     },
-    ...nick2bad4u.configs.all,
+    ...nick2bad4u.createConfig({
+        allowDefaultProjectFilePatterns: [],
+    }),
     {
         rules: {
             "copilot/require-skill-file-location": "off",
