@@ -1,0 +1,57 @@
+# Remark ignore patterns
+# Configuration files
+*.config.*
+*.js
+*.mjs
+.remarkrc.*
+
+# Build and output directories
+**/.cache/
+**/coverage/
+**/dist-*/
+**/dist/
+**/node_modules/
+**/playwright-report/
+**/temp/
+**/test-results/
+**/tmp/
+**/target/
+**/vendor/
+**/snapshots/
+
+
+# Binary and media files
+*.gif
+*.ico
+*.jpeg
+*.jpg
+*.pdf
+*.png
+*.wasm
+
+# Temporary files
+**/*.swp
+**/*.tmp
+**/*~
+
+# Generated content
+**/auto-generated/
+**/build/
+**/dist/
+**/generated/
+
+# API reference files (if auto-generated)
+**/api-reference/
+
+# Changelog and similar files with different formatting needs
+**/CHANGELOG.md
+**/HISTORY.md
+
+# Documentation that may have different formatting requirements
+**/LICENSE
+docs/docusaurus/build/
+docs/docusaurus/docs/
+docs/docusaurus/node_modules/
+
+# Docusaurus API reference files (if auto-generated)
+**/site-docs/developer/api/
