@@ -57,7 +57,8 @@
         "release:verify": "npm run validate && npm run pack:dry-run",
         "test": "python -m unittest discover -s tests -p \"test_*.py\"",
         "update-deps": "npx ncu -i --install never && npm update --force && npm install --force",
-        "validate": "node tools/validate-skill-package.mjs && python -c \"from pathlib import Path; compile(Path('scripts/analyze_release_semver.py').read_text(encoding='utf-8'), 'scripts/analyze_release_semver.py', 'exec')\" && npm run test"
+        "validate": "node tools/validate-skill-package.mjs && python -c \"from pathlib import Path; compile(Path('scripts/analyze_release_semver.py').read_text(encoding='utf-8'), 'scripts/analyze_release_semver.py', 'exec')\" && npm run test",
+        "update-actions": "npx actions-up --yes --style sha"
     },
     "devDependencies": {
         "eslint-config-nick2bad4u": "^1.2.9",
