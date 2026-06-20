@@ -1,86 +1,87 @@
 {
-    "name": "semver-release-recommender-skill",
-    "version": "1.0.0",
-    "private": false,
-    "description": "Codex skill for analyzing release changes and recommending a semantic version bump.",
-    "keywords": [
-        "agent-skill",
-        "agent-skills",
-        "ai-agent",
-        "codex",
-        "openai",
-        "release",
-        "semantic-versioning",
-        "semver",
-        "universal",
-        "versioning"
-    ],
-    "homepage": "https://github.com/Nick2bad4u/semver-release-recommender#readme",
-    "bugs": {
-        "url": "https://github.com/Nick2bad4u/semver-release-recommender/issues"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/Nick2bad4u/semver-release-recommender.git"
-    },
-    "license": "Unlicense",
-    "author": "Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> (https://github.com/Nick2bad4u)",
-    "contributors": [
-        {
-            "name": "Nick2bad4u",
-            "email": "20943337+Nick2bad4u@users.noreply.github.com",
-            "url": "https://github.com/Nick2bad4u"
-        }
-    ],
-    "type": "module",
-    "files": [
-        "SKILL.md",
-        "LICENSE.txt",
-        "agents/",
-        "assets/",
-        "scripts/analyze_release_semver.py",
-        "tests/test_analyze_release_semver.py",
-        "CHANGELOG.md",
-        "CONTRIBUTING.md",
-        "README.md",
-        "SECURITY.md"
-    ],
-    "scripts": {
-        "lint": "eslint --cache --cache-strategy content --cache-location .cache/.eslintcache",
-        "lint:gitleaks": "gitleaks dir --config .gitleaks.toml .",
-        "lint:package-json": "npmPkgJsonLint . --config .npmpackagejsonlintrc.json",
-        "lint:remark": "remark . --frail --ignore-path .remarkignore",
-        "lint:remark:fix": "remark . --ignore-path .remarkignore --output",
-        "lint:yamllint": "yamllint -c .yamllint .",
-        "pack:dry-run": "npm pack --dry-run",
-        "publish:local": "npm run release:verify && npm publish --access public",
-        "release:verify": "npm run validate && npm run pack:dry-run",
-        "test": "python -m unittest discover -s tests -p \"test_*.py\"",
-        "update-deps": "npx ncu -i --install never && npm update --force && npm install --force",
-        "validate": "node tools/validate-skill-package.mjs && python -c \"from pathlib import Path; compile(Path('scripts/analyze_release_semver.py').read_text(encoding='utf-8'), 'scripts/analyze_release_semver.py', 'exec')\" && npm run test",
-        "update-actions": "npx actions-up --yes --style sha"
-    },
-    "devDependencies": {
-        "eslint-config-nick2bad4u": "^1.2.9",
-        "gitleaks-config-nick2bad4u": "^1.0.2",
-        "npm-package-json-lint": "^10.4.0",
-        "npm-package-json-lint-config-nick2bad4u": "^1.0.2",
-        "prettier": "^3.8.4",
-        "prettier-config-nick2bad4u": "^1.0.16",
-        "remark": "^15.0.1",
-        "remark-cli": "^12.0.1",
-        "remark-config-nick2bad4u": "^1.0.5",
-        "yamllint-config-nick2bad4u": "^1.0.1"
-    },
-    "engines": {
-        "node": ">=22.14"
-    },
-    "publishConfig": {
-        "provenance": true
-    },
-    "codexSkill": {
-        "name": "semver-release-recommender",
-        "path": ".",
-        "githubReleaseAssetPrefix": "semver-release-recommender-skill"
+  "name": "semver-release-recommender-skill",
+  "version": "1.0.0",
+  "private": false,
+  "description": "Codex skill for analyzing release changes and recommending a semantic version bump.",
+  "keywords": [
+    "agent-skill",
+    "agent-skills",
+    "ai-agent",
+    "codex",
+    "openai",
+    "release",
+    "semantic-versioning",
+    "semver",
+    "universal",
+    "versioning"
+  ],
+  "homepage": "https://github.com/Nick2bad4u/semver-release-recommender#readme",
+  "bugs": {
+    "url": "https://github.com/Nick2bad4u/semver-release-recommender/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nick2bad4u/semver-release-recommender.git"
+  },
+  "license": "Unlicense",
+  "author": "Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> (https://github.com/Nick2bad4u)",
+  "contributors": [
+    {
+      "name": "Nick2bad4u",
+      "email": "20943337+Nick2bad4u@users.noreply.github.com",
+      "url": "https://github.com/Nick2bad4u"
     }
+  ],
+  "type": "module",
+  "files": [
+    "SKILL.md",
+    "LICENSE.txt",
+    "agents/",
+    "assets/",
+    "scripts/analyze_release_semver.py",
+    "tests/test_analyze_release_semver.py",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "README.md",
+    "SECURITY.md"
+  ],
+  "scripts": {
+    "lint": "eslint --cache --cache-strategy content --cache-location .cache/.eslintcache",
+    "lint:gitleaks": "gitleaks dir --config .gitleaks.toml .",
+    "lint:package-json": "npmPkgJsonLint . --config .npmpackagejsonlintrc.json",
+    "lint:remark": "remark . --frail --ignore-path .remarkignore",
+    "lint:remark:fix": "remark . --ignore-path .remarkignore --output",
+    "lint:yamllint": "yamllint -c .yamllint .",
+    "pack:dry-run": "npm pack --dry-run",
+    "publish:local": "npm run release:verify && npm publish --access public",
+    "release:verify": "npm run validate && npm run pack:dry-run",
+    "test": "python -m unittest discover -s tests -p \"test_*.py\"",
+    "update-actions": "npx actions-up --yes --style sha",
+    "update-deps": "npx ncu -i --install never && npm update --force && npm install --force",
+    "validate": "node tools/validate-skill-package.mjs && python -c \"from pathlib import Path; compile(Path('scripts/analyze_release_semver.py').read_text(encoding='utf-8'), 'scripts/analyze_release_semver.py', 'exec')\" && npm run test"
+  },
+  "devDependencies": {
+    "eslint": "^10.5.0",
+    "eslint-config-nick2bad4u": "^2.0.4",
+    "gitleaks-config-nick2bad4u": "^1.0.2",
+    "npm-package-json-lint": "^10.4.0",
+    "npm-package-json-lint-config-nick2bad4u": "^1.0.2",
+    "prettier": "^3.8.4",
+    "prettier-config-nick2bad4u": "^1.0.16",
+    "remark": "^15.0.1",
+    "remark-cli": "^12.0.1",
+    "remark-config-nick2bad4u": "^1.0.5",
+    "yamllint-config-nick2bad4u": "^1.0.1"
+  },
+  "engines": {
+    "node": ">=22.14"
+  },
+  "publishConfig": {
+    "provenance": true
+  },
+  "codexSkill": {
+    "name": "semver-release-recommender",
+    "path": ".",
+    "githubReleaseAssetPrefix": "semver-release-recommender-skill"
+  }
 }
