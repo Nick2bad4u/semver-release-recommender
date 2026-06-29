@@ -75,11 +75,12 @@ jobs:
 
             - name: "Resolve release tag"
               id: "vars"
+              env:
+                  EVENT_NAME: "${{ github.event_name }}"
+                  EXPLICIT_VERSION: "${{ inputs.version }}"
+                  RELEASE_TYPE: "${{ inputs.release_type }}"
               run: |
-                  if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-                    EXPLICIT_VERSION="${{ inputs.version }}"
-                    RELEASE_TYPE="${{ inputs.release_type }}"
-
+                  if [ "${EVENT_NAME}" = "workflow_dispatch" ]; then
                     if [ -n "${EXPLICIT_VERSION}" ]; then
                       if ! [[ "${EXPLICIT_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
                         echo "version must be in x.y.z format" >&2

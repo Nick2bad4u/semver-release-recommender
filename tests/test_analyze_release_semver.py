@@ -156,6 +156,26 @@ def test_latest_semver_tag_handles_prerelease_and_build_metadata(
     assert semver.latest_semver_tag("HEAD") == expected
 
 
+def test_semver_parser_allows_build_zeroes_but_rejects_prerelease_zeroes() -> None:
+    """Build metadata may have leading zeroes, but numeric prerelease identifiers may not."""
+    assert semver.parse_semver_tag("v1.2.3+001") is not None
+    assert semver.parse_semver_tag("v1.2.3-001") is None
+
+
+@pytest.mark.parametrize("revision", ["-c.alias=!sh", "HEAD..main", "main;echo bad", "feature@{1}", ""])
+def test_validate_git_revision_rejects_unsafe_input(revision: str) -> None:
+    """Git revision arguments are bounded before subprocess use."""
+    with pytest.raises(RuntimeError):
+        _ = semver.validate_git_revision(revision, "--target")
+
+
+def test_validate_git_revision_accepts_common_safe_refs() -> None:
+    """Common branch, tag, and commit-ish revisions remain supported."""
+    assert semver.validate_git_revision("HEAD", "--target") == "HEAD"
+    assert semver.validate_git_revision("release/v1.2.3", "--target") == "release/v1.2.3"
+    assert semver.validate_git_revision("v1.2.3+build.1", "--target") == "v1.2.3+build.1"
+
+
 def test_commit_classification_detects_release_impact() -> None:
     """Conventional and bracketed commit headers map to semver signal buckets."""
     commits: list[CommitRow] = [
@@ -429,7 +449,7 @@ def test_main_outputs_json_for_detected_release_range(
     def fake_run_git(args: list[str], **kwargs: object) -> semver.GitResult:
         if args == ["rev-parse", "--show-toplevel"]:
             return semver.GitResult(str(tmp_path), "")
-        if args == ["rev-parse", "HEAD"]:
+        if args == ["rev-parse", "--verify", "--end-of-options", "HEAD^{commit}"]:
             return semver.GitResult("target-sha", "")
         if args == ["tag", "--merged", "HEAD", "--list"]:
             return semver.GitResult("v1.0.0", "")
@@ -468,7 +488,7 @@ def test_main_outputs_text_for_initial_release(
     def fake_run_git(args: list[str], **kwargs: object) -> semver.GitResult:
         if args == ["rev-parse", "--show-toplevel"]:
             return semver.GitResult(str(tmp_path), "")
-        if args == ["rev-parse", "HEAD"]:
+        if args == ["rev-parse", "--verify", "--end-of-options", "HEAD^{commit}"]:
             return semver.GitResult("target-sha", "")
         if args == ["tag", "--merged", "HEAD", "--list"]:
             return semver.GitResult("", "")
