@@ -1,0 +1,47 @@
+codecov:
+    notify:
+        after_n_builds: 1
+        wait_for_ci: true
+    require_ci_to_pass: true
+
+comment:
+    behavior: "default"
+    layout: "header, diff, flags, files, footer"
+    require_changes: false
+
+coverage:
+    precision: 2
+    range: "75...100"
+    round: "down"
+    status:
+        patch:
+            python:
+                flags:
+                    - "python"
+                if_ci_failed: "error"
+                target: "75%"
+                threshold: "0%"
+        project:
+            python:
+                flags:
+                    - "python"
+                if_ci_failed: "error"
+                target: "75%"
+                threshold: "0%"
+
+flags:
+    python:
+        carryforward: false
+        paths:
+            - "scripts/"
+
+ignore:
+    - ".cache/**"
+    - ".github/**"
+    - ".vscode/**"
+    - "assets/**"
+    - "coverage/**"
+    - "dist/**"
+    - "node_modules/**"
+    - "references/**"
+    - "tests/**"

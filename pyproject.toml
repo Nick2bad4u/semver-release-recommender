@@ -318,7 +318,7 @@
 [tool.coverage.run]
     branch = true
     data_file = "coverage/.coverage"
-    source = [ "scripts" ]
+    include = [ "scripts/**/*.py" ]
 
 [tool.coverage.report]
     fail_under = 75
