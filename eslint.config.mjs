@@ -3,8 +3,8 @@ import nick2bad4u from "eslint-config-nick2bad4u";
 /** @type {import("eslint").Linter.Config[]} */
 const config = [
     {
-        ignores: ["tools/**/*.mjs"],
-        name: "Local validation tools",
+        ignores: [".skillcheck-history.json", "tools/**/*.mjs"],
+        name: "Generated and local validation tools",
     },
     ...nick2bad4u.createConfig({
         allowDefaultProjectFilePatterns: [],

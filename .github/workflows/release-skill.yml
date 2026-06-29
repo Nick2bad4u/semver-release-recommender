@@ -64,6 +64,15 @@ jobs:
                   registry-url: "https://registry.npmjs.org"
                   package-manager-cache: false
 
+            - name: "Setup Python"
+              uses: "actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1" # v6.0.0
+              with:
+                  python-version: "3.14"
+                  cache: "pip"
+
+            - name: "Install Python dependencies"
+              run: "python -m pip install -r requirements-dev.txt"
+
             - name: "Resolve release tag"
               id: "vars"
               run: |
@@ -151,7 +160,7 @@ jobs:
               run: |
                   mkdir -p dist
                   zip -r "dist/${{ steps.vars.outputs.asset }}" \
-                    SKILL.md LICENSE.txt agents assets scripts/analyze_release_semver.py \
+                    SKILL.md LICENSE.txt agents assets references scripts/analyze_release_semver.py \
                     README.md LICENSE SECURITY.md CHANGELOG.md CONTRIBUTING.md
 
             - name: "Upload workflow artifact"

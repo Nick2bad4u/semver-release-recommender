@@ -97,6 +97,7 @@ for (const requiredFile of [
     "LICENSE.txt",
     "agents/",
     "assets/",
+    "references/",
     "scripts/analyze_release_semver.py",
     "tests/test_analyze_release_semver.py",
     "README.md",

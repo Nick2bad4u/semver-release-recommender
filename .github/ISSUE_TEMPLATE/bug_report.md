@@ -6,6 +6,8 @@ labels: "bug"
 assignees: ""
 ---
 
+# Bug Report
+
 ## Problem
 
 Describe the problem and the command or workflow that exposed it.

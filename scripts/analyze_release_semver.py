@@ -6,26 +6,27 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import shutil
 import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-
 SEMVER_TAG = re.compile(
-    r"^v?"
-    r"(?P<major>0|[1-9]\d*)\."
-    r"(?P<minor>0|[1-9]\d*)\."
-    r"(?P<patch>0|[1-9]\d*)"
-    r"(?P<prerelease>-(?:0|[1-9]\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)"
-    r"(?:\.(?:0|[1-9]\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*)?"
-    r"(?P<build>\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$"
+    r"""
+    ^v?
+    (?P<major>0|[1-9]\d*)\.
+    (?P<minor>0|[1-9]\d*)\.
+    (?P<patch>0|[1-9]\d*)
+    (?P<prerelease>-(?:0|[1-9]\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)
+    (?:\.(?:0|[1-9]\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*)?
+    (?P<build>\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$
+    """,
+    re.VERBOSE,
 )
 BREAKING_FOOTER = re.compile(r"(?im)^BREAKING(?:[ -]CHANGE)?:")
-CONVENTIONAL = re.compile(
-    r"^(?P<type>[a-zA-Z]+)(?:\([^)]+\))?(?P<breaking>!)?:\s+(?P<subject>.+)$"
-)
+CONVENTIONAL = re.compile(r"^(?P<type>[a-zA-Z]+)(?:\([^)]+\))?(?P<breaking>!)?:\s+(?P<subject>.+)$")
 BRACKETED_TYPE = re.compile(
     r"^(?P<prefix>.*?)\[(?P<type>[a-zA-Z]+)\](?P<breaking>!)?(?:\s+|\s*\([^)]+\)\s+)(?P<subject>.+)$"
 )
@@ -33,9 +34,9 @@ BRACKETED_TYPE = re.compile(
 PUBLIC_SURFACE_PATTERNS = (
     re.compile(r"(^|/)(package\.json|pyproject\.toml|Cargo\.toml|go\.mod)$"),
     re.compile(r"(^|/)SKILL\.md$"),
-    re.compile(r"(^|/)(README|CHANGELOG|SECURITY|MIGRATION|UPGRADING)(\..*)?$", re.I),
+    re.compile(r"(^|/)(README|CHANGELOG|SECURITY|MIGRATION|UPGRADING)(\..*)?$", re.IGNORECASE),
     re.compile(r"(^|/)(src|lib|bin|cli|schemas?|api|types?|docs?)/"),
-    re.compile(r"\.(d\.ts|schema\.json|proto|graphql|openapi\.(json|ya?ml))$", re.I),
+    re.compile(r"\.(d\.ts|schema\.json|proto|graphql|openapi\.(json|ya?ml))$", re.IGNORECASE),
 )
 EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 UNTRUSTED_GIT_CONTENT_WARNING = (
@@ -49,20 +50,23 @@ WHITESPACE = re.compile(r"\s+")
 
 @dataclass(frozen=True)
 class GitResult:
+    """Captured output from a Git invocation."""
+
     stdout: str
     stderr: str
 
 
-def run_git(
-    args: list[str], *, check: bool = True, strip_output: bool = True
-) -> GitResult:
-    completed = subprocess.run(
-        ["git", *args],
+def run_git(args: list[str], *, check: bool = True, strip_output: bool = True) -> GitResult:
+    """Run Git with fixed executable resolution and captured text output."""
+    git_executable = shutil.which("git")
+    if git_executable is None:
+        raise RuntimeError("git executable was not found on PATH")
+    completed = subprocess.run(  # noqa: S603 - args are fixed git subcommands assembled by this helper.
+        [git_executable, *args],
         check=False,
+        capture_output=True,
         encoding="utf-8",
         errors="replace",
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
         text=True,
     )
     if check and completed.returncode != 0:
@@ -74,6 +78,7 @@ def run_git(
 
 
 def semver_key(tag: str) -> tuple[int, int, int, int, str]:
+    """Return a sortable key for stable SemVer tags."""
     match = SEMVER_TAG.match(tag)
     if not match:
         return (-1, -1, -1, -1, "")
@@ -87,8 +92,9 @@ def semver_key(tag: str) -> tuple[int, int, int, int, str]:
 
 
 def latest_semver_tag(target: str) -> str | None:
+    """Find the latest stable SemVer tag reachable from a target revision."""
     result = run_git(["tag", "--merged", target, "--list"])
-    tags = []
+    tags: list[str] = []
     for line in result.stdout.splitlines():
         tag = line.strip()
         match = SEMVER_TAG.match(tag)
@@ -98,6 +104,7 @@ def latest_semver_tag(target: str) -> str | None:
 
 
 def commit_rows(revision_range: str) -> list[dict[str, str]]:
+    """Return commit metadata rows for a revision range."""
     output = run_git(
         ["log", "--reverse", "--format=%H%x00%h%x00%s%x00%b%x00", revision_range],
         strip_output=False,
@@ -105,7 +112,7 @@ def commit_rows(revision_range: str) -> list[dict[str, str]]:
     rows: list[dict[str, str]] = []
     fields = output.split("\x00")
     if fields and fields[-1] == "":
-        fields.pop()
+        _ = fields.pop()
     for index in range(0, len(fields) - 3, 4):
         full_hash, short_hash, subject, body = fields[index : index + 4]
         rows.append(
@@ -120,6 +127,7 @@ def commit_rows(revision_range: str) -> list[dict[str, str]]:
 
 
 def changed_files(base: str | None, target: str) -> list[dict[str, str]]:
+    """Return name-status entries changed between the base and target."""
     if base:
         args = ["diff", "--name-status", "-z", f"{base}..{target}"]
     else:
@@ -128,7 +136,7 @@ def changed_files(base: str | None, target: str) -> list[dict[str, str]]:
     files: list[dict[str, str]] = []
     fields = output.split("\x00")
     if fields and fields[-1] == "":
-        fields.pop()
+        _ = fields.pop()
     index = 0
     while index < len(fields):
         status = fields[index]
@@ -150,33 +158,35 @@ def changed_files(base: str | None, target: str) -> list[dict[str, str]]:
 
 
 def diff_stat(base: str | None, target: str) -> str:
+    """Return Git diffstat text for the analyzed range."""
     if base:
         return run_git(["diff", "--stat", f"{base}..{target}"]).stdout
     return run_git(["diff", "--stat", EMPTY_TREE, target]).stdout
 
 
 def package_version(repository_root: Path) -> str | None:
+    """Read package.json version from the repository root when present."""
     package_json = repository_root / "package.json"
     if not package_json.exists():
         return None
     try:
         data = json.loads(package_json.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
+    except OSError, json.JSONDecodeError:
         return None
     version = data.get("version")
     return version if isinstance(version, str) else None
 
 
 def classify_commits(commits: list[dict[str, str]]) -> dict[str, list[str]]:
+    """Classify conventional-commit release signals by semver impact."""
     signals: dict[str, list[str]] = {"major": [], "minor": [], "patch": []}
     for commit in commits:
         text = f"{commit['subject']}\n{commit['body']}"
         conventional = CONVENTIONAL.match(commit["subject"])
         bracketed_type = BRACKETED_TYPE.match(commit["subject"])
         prefix = f"{commit['short']} {commit['subject']}"
-        breaking_marker = (
-            (conventional and conventional.group("breaking"))
-            or (bracketed_type and bracketed_type.group("breaking"))
+        breaking_marker = (conventional and conventional.group("breaking")) or (
+            bracketed_type and bracketed_type.group("breaking")
         )
         if BREAKING_FOOTER.search(text) or breaking_marker:
             signals["major"].append(prefix)
@@ -192,6 +202,7 @@ def classify_commits(commits: list[dict[str, str]]) -> dict[str, list[str]]:
 
 
 def public_surface_files(files: list[dict[str, str]]) -> list[str]:
+    """Return changed files that commonly represent public contract surface."""
     candidates: list[str] = []
     for entry in files:
         for key in ("old_path", "path"):
@@ -199,15 +210,12 @@ def public_surface_files(files: list[dict[str, str]]) -> list[str]:
             if path is not None:
                 candidates.append(path.replace("\\", "/"))
     return list(
-        dict.fromkeys(
-            path
-            for path in candidates
-            if any(pattern.search(path) for pattern in PUBLIC_SURFACE_PATTERNS)
-        )
+        dict.fromkeys(path for path in candidates if any(pattern.search(path) for pattern in PUBLIC_SURFACE_PATTERNS))
     )
 
 
 def mark_untrusted_git_text(value: str) -> str:
+    """Normalize and mark repository-authored text as untrusted evidence."""
     cleaned = WHITESPACE.sub(" ", CONTROL_CHARACTERS.sub(" ", value)).strip()
     if len(cleaned) > UNTRUSTED_TEXT_MAX_LENGTH:
         cleaned = f"{cleaned[:UNTRUSTED_TEXT_MAX_LENGTH].rstrip()} ... [truncated]"
@@ -215,6 +223,7 @@ def mark_untrusted_git_text(value: str) -> str:
 
 
 def sanitize_commit_for_output(commit: dict[str, str]) -> dict[str, str]:
+    """Mark commit subject and body fields as untrusted before display."""
     sanitized = dict(commit)
     for key in ("subject", "body"):
         value = sanitized.get(key)
@@ -224,6 +233,7 @@ def sanitize_commit_for_output(commit: dict[str, str]) -> dict[str, str]:
 
 
 def sanitize_file_entry_for_output(entry: dict[str, str]) -> dict[str, str]:
+    """Mark file paths as untrusted before display."""
     sanitized = dict(entry)
     for key in ("old_path", "path"):
         value = sanitized.get(key)
@@ -235,35 +245,25 @@ def sanitize_file_entry_for_output(entry: dict[str, str]) -> dict[str, str]:
 def sanitize_signals_for_output(
     signals: dict[str, list[str]],
 ) -> dict[str, list[str]]:
-    return {
-        impact: [mark_untrusted_git_text(item) for item in items]
-        for impact, items in signals.items()
-    }
+    """Mark conventional signal strings as untrusted before display."""
+    return {impact: [mark_untrusted_git_text(item) for item in items] for impact, items in signals.items()}
 
 
 def sanitize_output_data(data: dict[str, Any]) -> dict[str, Any]:
+    """Return a display-safe copy of helper output."""
     sanitized = dict(data)
     sanitized["untrusted_content_warning"] = UNTRUSTED_GIT_CONTENT_WARNING
-    sanitized["commits"] = [
-        sanitize_commit_for_output(commit) for commit in data.get("commits", [])
-    ]
-    sanitized["changed_files"] = [
-        sanitize_file_entry_for_output(entry)
-        for entry in data.get("changed_files", [])
-    ]
-    sanitized["public_surface_files"] = [
-        mark_untrusted_git_text(path)
-        for path in data.get("public_surface_files", [])
-    ]
-    sanitized["conventional_signals"] = sanitize_signals_for_output(
-        data.get("conventional_signals", {})
-    )
+    sanitized["commits"] = [sanitize_commit_for_output(commit) for commit in data.get("commits", [])]
+    sanitized["changed_files"] = [sanitize_file_entry_for_output(entry) for entry in data.get("changed_files", [])]
+    sanitized["public_surface_files"] = [mark_untrusted_git_text(path) for path in data.get("public_surface_files", [])]
+    sanitized["conventional_signals"] = sanitize_signals_for_output(data.get("conventional_signals", {}))
     if data.get("diff_stat"):
         sanitized["diff_stat"] = mark_untrusted_git_text(str(data["diff_stat"]))
     return sanitized
 
 
 def summarize(data: dict[str, Any]) -> str:
+    """Render sanitized release evidence for terminal output."""
     lines = [
         data["untrusted_content_warning"],
         "",
@@ -285,15 +285,13 @@ def summarize(data: dict[str, Any]) -> str:
     signals = data["conventional_signals"]
     if signals:
         for impact in ("major", "minor", "patch"):
-            for item in signals.get(impact, []):
-                lines.append(f"- {impact}: {item}")
+            lines.extend(f"- {impact}: {item}" for item in signals.get(impact, []))
     else:
         lines.append("- none detected")
     lines.append("")
     lines.append("Public-surface candidate files:")
     if data["public_surface_files"]:
-        for path in data["public_surface_files"]:
-            lines.append(f"- {path}")
+        lines.extend(f"- {path}" for path in data["public_surface_files"])
     else:
         lines.append("- none detected")
     lines.append("")
@@ -303,12 +301,11 @@ def summarize(data: dict[str, Any]) -> str:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Collect release-range evidence for semver bump analysis."
-    )
-    parser.add_argument("--base-tag", help="Use this tag or revision as the release base.")
-    parser.add_argument("--target", default="HEAD", help="Target revision to analyze.")
-    parser.add_argument("--json", action="store_true", help="Print machine-readable JSON.")
+    """Collect and print release-range evidence."""
+    parser = argparse.ArgumentParser(description="Collect release-range evidence for semver bump analysis.")
+    _ = parser.add_argument("--base-tag", help="Use this tag or revision as the release base.")
+    _ = parser.add_argument("--target", default="HEAD", help="Target revision to analyze.")
+    _ = parser.add_argument("--json", action="store_true", help="Print machine-readable JSON.")
     args = parser.parse_args()
 
     try:
@@ -335,14 +332,14 @@ def main() -> int:
             "diff_stat": diff_stat(base, args.target),
         }
     except RuntimeError as error:
-        print(error, file=sys.stderr)
+        _ = sys.stderr.write(f"{error}\n")
         return 2
 
     if args.json:
         output_data = sanitize_output_data(data)
-        print(json.dumps(output_data, indent=2, sort_keys=True))
+        _ = sys.stdout.write(f"{json.dumps(output_data, indent=2, sort_keys=True)}\n")
     else:
-        print(summarize(sanitize_output_data(data)))
+        _ = sys.stdout.write(f"{summarize(sanitize_output_data(data))}\n")
     return 0
 
 
