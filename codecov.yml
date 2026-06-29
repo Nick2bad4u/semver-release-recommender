@@ -1,5 +1,5 @@
 codecov:
-    max_report_age: 24
+    max_report_age: off # yamllint disable-line rule:truthy
     notify:
         after_n_builds: 1
         wait_for_ci: true
