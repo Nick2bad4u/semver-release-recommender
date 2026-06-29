@@ -150,6 +150,12 @@ def validate_git_revision(value: str, argument_name: str) -> str:
     return revision
 
 
+def resolve_commit(revision: str, argument_name: str) -> str:
+    """Validate and resolve a revision to a commit hash before later Git use."""
+    safe_revision = validate_git_revision(revision, argument_name)
+    return run_git(["rev-parse", "--verify", "--end-of-options", f"{safe_revision}^{{commit}}"]).stdout
+
+
 def _parse_conventional_header(subject: str) -> CommitHeader | None:
     type_end = 0
     while type_end < len(subject) and subject[type_end].isalpha():
@@ -448,14 +454,17 @@ def main() -> int:
         root = run_git(["rev-parse", "--show-toplevel"]).stdout
         repository_root = Path(root)
         target = validate_git_revision(args.target, "--target")
-        base = validate_git_revision(args.base_tag, "--base-tag") if args.base_tag else latest_semver_tag(target)
-        target_commit = run_git(["rev-parse", "--verify", "--end-of-options", f"{target}^{{commit}}"]).stdout
-        revision_range = f"{base}..{target}" if base else target
-        commits = commit_rows(revision_range)
-        files = changed_files(base, target)
+        target_commit = resolve_commit(target, "--target")
+        detected_base = args.base_tag or latest_semver_tag(target_commit)
+        base = validate_git_revision(detected_base, "--base-tag") if detected_base else None
+        base_commit = resolve_commit(base, "--base-tag") if base else None
+        git_revision_range = f"{base_commit}..{target_commit}" if base_commit else target_commit
+        display_range = f"{base}..{target}" if base else target
+        commits = commit_rows(git_revision_range)
+        files = changed_files(base_commit, target_commit)
         data: dict[str, Any] = {
             "repository_root": root,
-            "range": revision_range,
+            "range": display_range,
             "base_tag": base,
             "target": target,
             "target_commit": target_commit,
@@ -466,7 +475,7 @@ def main() -> int:
             "changed_files": files,
             "public_surface_files": public_surface_files(files),
             "conventional_signals": classify_commits(commits),
-            "diff_stat": diff_stat(base, target),
+            "diff_stat": diff_stat(base_commit, target_commit),
         }
     except RuntimeError as error:
         _ = sys.stderr.write(f"{error}\n")

@@ -451,8 +451,10 @@ def test_main_outputs_json_for_detected_release_range(
             return semver.GitResult(str(tmp_path), "")
         if args == ["rev-parse", "--verify", "--end-of-options", "HEAD^{commit}"]:
             return semver.GitResult("target-sha", "")
-        if args == ["tag", "--merged", "HEAD", "--list"]:
+        if args == ["tag", "--merged", "target-sha", "--list"]:
             return semver.GitResult("v1.0.0", "")
+        if args == ["rev-parse", "--verify", "--end-of-options", "v1.0.0^{commit}"]:
+            return semver.GitResult("base-sha", "")
         raise AssertionError(f"unexpected git args: {args} {kwargs}")
 
     def fake_commit_rows(_revision_range: str) -> list[dict[str, str]]:
@@ -490,7 +492,7 @@ def test_main_outputs_text_for_initial_release(
             return semver.GitResult(str(tmp_path), "")
         if args == ["rev-parse", "--verify", "--end-of-options", "HEAD^{commit}"]:
             return semver.GitResult("target-sha", "")
-        if args == ["tag", "--merged", "HEAD", "--list"]:
+        if args == ["tag", "--merged", "target-sha", "--list"]:
             return semver.GitResult("", "")
         raise AssertionError(f"unexpected git args: {args} {kwargs}")
 
