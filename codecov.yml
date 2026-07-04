@@ -34,15 +34,15 @@ flags:
     python:
         carryforward: false
         paths:
-            - "scripts/"
+            - "skills/semver-release-recommender/scripts/"
 
 ignore:
     - ".cache/**"
     - ".github/**"
     - ".vscode/**"
-    - "assets/**"
+    - "skills/semver-release-recommender/assets/**"
     - "coverage/**"
     - "dist/**"
     - "node_modules/**"
-    - "references/**"
+    - "skills/semver-release-recommender/references/**"
     - "tests/**"

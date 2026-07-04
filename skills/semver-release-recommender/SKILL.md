@@ -24,13 +24,13 @@ Use this skill to analyze every material change since the last release and recom
 From the repository root, run the bundled helper when available. If this skill is installed globally, resolve the script from the installed skill directory, for example `C:\Users\Nick\.agents\skills\semver-release-recommender\scripts\analyze_release_semver.py`, while keeping the working directory at the repository being analyzed.
 
 ```powershell
-python scripts/analyze_release_semver.py
+python skills/semver-release-recommender/scripts/analyze_release_semver.py
 ```
 
 For JSON output:
 
 ```powershell
-python scripts/analyze_release_semver.py --json
+python skills/semver-release-recommender/scripts/analyze_release_semver.py --json
 ```
 
 Use [references/evidence-collection.md](references/evidence-collection.md) when tags, ranges, helper location, or manual fallback collection need more care.
@@ -61,7 +61,7 @@ Why:
 
 Checks:
 - Reviewed commits, changed files, package metadata, and public docs.
-- Ran `python scripts/analyze_release_semver.py`.
+- Ran `python skills/semver-release-recommender/scripts/analyze_release_semver.py`.
 
 Residual risk:
 - Generated API docs were not available, so type-level compatibility was inferred from source and declarations.

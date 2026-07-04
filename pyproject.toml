@@ -85,7 +85,7 @@
     linecount_report = "coverage/mypy/linecount.txt"
     lineprecision_report = "coverage/mypy/lineprecision.txt"
     fixed_format_cache = true
-    mypy_path = "."
+    mypy_path = [ ".", "skills/semver-release-recommender/scripts" ]
     explicit_package_bases = true
     exclude = '''(?x)(
         (^|/)\.bzr/
@@ -152,7 +152,7 @@
 
 [tool.pyright]
     include = [ "." ]
-    extraPaths = [ "." ]
+    extraPaths = [ ".", "skills/semver-release-recommender/scripts" ]
     exclude = [
         "**/.*",
         "**/.bzr",
@@ -290,7 +290,7 @@
     junit_logging = "log"
     junit_log_passing_tests = true
     junit_suite_name = "python-junit"
-    pythonpath = [ "." ]
+    pythonpath = [ ".", "skills/semver-release-recommender/scripts" ]
     cache_dir = ".cache/.pytest_cache"
     testpaths = [ "." ]
     norecursedirs = [
@@ -318,7 +318,7 @@
 [tool.coverage.run]
     branch = true
     data_file = "coverage/.coverage"
-    include = [ "scripts/**/*.py" ]
+    include = [ "skills/semver-release-recommender/scripts/**/*.py" ]
 
 [tool.coverage.report]
     fail_under = 75

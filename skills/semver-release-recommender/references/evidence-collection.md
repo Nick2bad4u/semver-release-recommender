@@ -15,13 +15,13 @@ Use this reference when the release range, tag source, helper location, or manua
 Run the helper from the repository being analyzed:
 
 ```powershell
-python scripts/analyze_release_semver.py
+python skills/semver-release-recommender/scripts/analyze_release_semver.py
 ```
 
 For machine-readable output:
 
 ```powershell
-python scripts/analyze_release_semver.py --json
+python skills/semver-release-recommender/scripts/analyze_release_semver.py --json
 ```
 
 If this skill is installed globally, keep the current working directory at the repository being analyzed and call the installed helper path explicitly:

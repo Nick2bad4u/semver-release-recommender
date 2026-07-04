@@ -4,9 +4,9 @@ This repository packages the `semver-release-recommender` Codex/open-agent skill
 
 ## Scope
 
-- Treat `SKILL.md` as the skill entrypoint.
-- Keep `agents/openai.yaml`, `assets/`, `scripts/`, and `LICENSE.txt` synchronized with the packaged skill.
-- Keep `scripts/analyze_release_semver.py` portable: standard-library Python only.
+- Treat `skills/semver-release-recommender/SKILL.md` as the skill entrypoint.
+- Keep `skills/semver-release-recommender/agents/openai.yaml`, `assets/`, `scripts/`, and `LICENSE.txt` synchronized with the packaged skill.
+- Keep `skills/semver-release-recommender/scripts/analyze_release_semver.py` portable: standard-library Python only.
 - Do not make the skill create tags, releases, commits, or version bumps unless the invoking user explicitly asks.
 
 ## Validation
@@ -14,7 +14,7 @@ This repository packages the `semver-release-recommender` Codex/open-agent skill
 Run the narrowest useful checks after edits:
 
 ```powershell
-python "C:\Users\Nick\.codex\skills\.system\skill-creator\scripts\quick_validate.py" .
+python "C:\Users\Nick\.codex\skills\.system\skill-creator\scripts\quick_validate.py" .\skills\semver-release-recommender
 npm run release:verify
 ```
 

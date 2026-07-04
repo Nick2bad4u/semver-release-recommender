@@ -87,19 +87,21 @@ assert(
         "git+https://github.com/Nick2bad4u/semver-release-recommender.git",
     "repository.url must exactly match the GitHub repository for npm trusted publishing"
 );
-assert(skill.path === ".", "codexSkill.path must point at the repository root");
+assert(
+    skill.path === "skills/semver-release-recommender",
+    "codexSkill.path must point at the packaged skill directory"
+);
 assert(
     skill.githubReleaseAssetPrefix === "semver-release-recommender-skill",
     "codexSkill.githubReleaseAssetPrefix must match release asset prefix"
 );
 for (const requiredFile of [
-    "SKILL.md",
-    "LICENSE.txt",
-    "agents/",
-    "assets/",
-    "references/",
-    "scripts/analyze_release_semver.py",
-    "tests/test_analyze_release_semver.py",
+    "skills/semver-release-recommender/SKILL.md",
+    "skills/semver-release-recommender/LICENSE.txt",
+    "skills/semver-release-recommender/agents/",
+    "skills/semver-release-recommender/assets/",
+    "skills/semver-release-recommender/references/",
+    "skills/semver-release-recommender/scripts/analyze_release_semver.py",
     "README.md",
     "CHANGELOG.md",
     "SECURITY.md",
@@ -114,7 +116,7 @@ for (const forbiddenFile of [
     ".github/instructions/",
     "dist/",
     "tools/",
-    "scripts/__pycache__/",
+    "skills/semver-release-recommender/scripts/__pycache__/",
     "tests/__pycache__/",
 ]) {
     assert(
@@ -160,7 +162,7 @@ await Promise.all([
     assertFile(skillRelative(stripCurrentDirectoryPrefix(largeIcon))),
     assertFile(skillRelative("LICENSE.txt")),
     assertFile(skillRelative("scripts/analyze_release_semver.py")),
-    assertFile(skillRelative("tests/test_analyze_release_semver.py")),
+    assertFile("tests/test_analyze_release_semver.py"),
 ]);
 
 console.log(`Validated ${pkg.name} skill package metadata.`);

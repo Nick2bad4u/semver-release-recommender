@@ -6,9 +6,9 @@ An open-agent skill for analyzing all material changes since the last release an
 
 This repository provides:
 
-- a reusable `semver-release-recommender` skill (`SKILL.md`)
+- a reusable `semver-release-recommender` skill (`skills/semver-release-recommender/SKILL.md`)
 - a portable helper script for release-range evidence collection
-- OpenAI-compatible display metadata in `agents/openai.yaml`
+- OpenAI-compatible display metadata in `skills/semver-release-recommender/agents/openai.yaml`
 - package metadata for local validation and installation through `npx skills`
 
 ## What This Skill Does
@@ -18,14 +18,20 @@ The skill guides Codex to identify the latest SemVer release tag, inspect commit
 ## Repository Layout
 
 ```text
-SKILL.md
-agents/
-  openai.yaml
-assets/
-  semver-release-recommender-small.svg
-  semver-release-recommender.svg
-scripts/
-  analyze_release_semver.py
+skills/
+  semver-release-recommender/
+    SKILL.md
+    LICENSE.txt
+    agents/
+      openai.yaml
+    assets/
+      semver-release-recommender-small.svg
+      semver-release-recommender.svg
+    references/
+      evidence-collection.md
+      release-impact.md
+    scripts/
+      analyze_release_semver.py
 README.md
 CONTRIBUTING.md
 SECURITY.md
@@ -49,6 +55,6 @@ npx skills add Nick2bad4u/semver-release-recommender -g --agent universal -y
 ## Validation
 
 ```powershell
-python "C:\Users\Nick\.codex\skills\.system\skill-creator\scripts\quick_validate.py" .
+python "C:\Users\Nick\.codex\skills\.system\skill-creator\scripts\quick_validate.py" .\skills\semver-release-recommender
 npm run release:verify
 ```

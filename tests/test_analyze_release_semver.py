@@ -10,7 +10,7 @@ from typing import Any, TypeAlias
 
 import pytest
 
-import scripts.analyze_release_semver as semver
+import analyze_release_semver as semver
 
 CommitRow: TypeAlias = dict[str, str]
 FileEntry: TypeAlias = dict[str, str]
@@ -48,8 +48,8 @@ def test_run_git_captures_and_strips_success(monkeypatch: pytest.MonkeyPatch) ->
         assert text is True
         return subprocess.CompletedProcess(args, 0, stdout="  ok\n", stderr="  note\n")
 
-    monkeypatch.setattr("scripts.analyze_release_semver.shutil.which", fake_which)
-    monkeypatch.setattr("scripts.analyze_release_semver.subprocess.run", fake_run)
+    monkeypatch.setattr("analyze_release_semver.shutil.which", fake_which)
+    monkeypatch.setattr("analyze_release_semver.subprocess.run", fake_run)
 
     assert semver.run_git(["status", "--short"]) == semver.GitResult("ok", "note")
 
@@ -68,15 +68,15 @@ def test_run_git_preserves_output_and_allows_unchecked_failure(monkeypatch: pyte
     ) -> subprocess.CompletedProcess[str]:
         return subprocess.CompletedProcess(args, 128, stdout="bad\n", stderr="fatal\n")
 
-    monkeypatch.setattr("scripts.analyze_release_semver.shutil.which", _which_git)
-    monkeypatch.setattr("scripts.analyze_release_semver.subprocess.run", fake_run)
+    monkeypatch.setattr("analyze_release_semver.shutil.which", _which_git)
+    monkeypatch.setattr("analyze_release_semver.subprocess.run", fake_run)
 
     assert semver.run_git(["bad"], check=False, strip_output=False) == semver.GitResult("bad\n", "fatal\n")
 
 
 def test_run_git_raises_when_git_is_missing(monkeypatch: pytest.MonkeyPatch) -> None:
     """A missing Git executable is reported before subprocess execution."""
-    monkeypatch.setattr("scripts.analyze_release_semver.shutil.which", _which_missing)
+    monkeypatch.setattr("analyze_release_semver.shutil.which", _which_missing)
 
     with pytest.raises(RuntimeError, match="not found"):
         _ = semver.run_git(["status"])
@@ -96,8 +96,8 @@ def test_run_git_raises_checked_failure(monkeypatch: pytest.MonkeyPatch) -> None
     ) -> subprocess.CompletedProcess[str]:
         return subprocess.CompletedProcess(args, 1, stdout="", stderr="fatal: bad revision\n")
 
-    monkeypatch.setattr("scripts.analyze_release_semver.shutil.which", _which_git)
-    monkeypatch.setattr("scripts.analyze_release_semver.subprocess.run", fake_run)
+    monkeypatch.setattr("analyze_release_semver.shutil.which", _which_git)
+    monkeypatch.setattr("analyze_release_semver.subprocess.run", fake_run)
 
     with pytest.raises(RuntimeError, match=r"git log failed: fatal: bad revision"):
         _ = semver.run_git(["log"])
