@@ -6,14 +6,16 @@ import json
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, TypeAlias
-
-import pytest
+from typing import Any
 
 import analyze_release_semver as semver
+import pytest
 
-CommitRow: TypeAlias = dict[str, str]
-FileEntry: TypeAlias = dict[str, str]
+type CommitRow = dict[str, str]
+type FileEntry = dict[str, str]
+
+CLI_FAILURE_EXIT_CODE = 2
+EXPECTED_EMPTY_SECTION_COUNT = 2
 
 
 def _which_git(_command: str) -> str | None:
@@ -31,21 +33,15 @@ def test_run_git_captures_and_strips_success(monkeypatch: pytest.MonkeyPatch) ->
         assert command == "git"
         return "C:/Program Files/Git/bin/git.exe"
 
-    def fake_run(
-        args: list[str],
-        *,
-        check: bool,
-        capture_output: bool,
-        encoding: str,
-        errors: str,
-        text: bool,
-    ) -> subprocess.CompletedProcess[str]:
+    def fake_run(args: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
         assert args == ["C:/Program Files/Git/bin/git.exe", "status", "--short"]
-        assert check is False
-        assert capture_output is True
-        assert encoding == "utf-8"
-        assert errors == "replace"
-        assert text is True
+        assert kwargs == {
+            "capture_output": True,
+            "check": False,
+            "encoding": "utf-8",
+            "errors": "replace",
+            "text": True,
+        }
         return subprocess.CompletedProcess(args, 0, stdout="  ok\n", stderr="  note\n")
 
     monkeypatch.setattr("analyze_release_semver.shutil.which", fake_which)
@@ -57,15 +53,14 @@ def test_run_git_captures_and_strips_success(monkeypatch: pytest.MonkeyPatch) ->
 def test_run_git_preserves_output_and_allows_unchecked_failure(monkeypatch: pytest.MonkeyPatch) -> None:
     """Unchecked Git failures return raw captured output when requested."""
 
-    def fake_run(
-        args: list[str],
-        *,
-        check: bool,
-        capture_output: bool,
-        encoding: str,
-        errors: str,
-        text: bool,
-    ) -> subprocess.CompletedProcess[str]:
+    def fake_run(args: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
+        assert kwargs == {
+            "capture_output": True,
+            "check": False,
+            "encoding": "utf-8",
+            "errors": "replace",
+            "text": True,
+        }
         return subprocess.CompletedProcess(args, 128, stdout="bad\n", stderr="fatal\n")
 
     monkeypatch.setattr("analyze_release_semver.shutil.which", _which_git)
@@ -85,15 +80,14 @@ def test_run_git_raises_when_git_is_missing(monkeypatch: pytest.MonkeyPatch) -> 
 def test_run_git_raises_checked_failure(monkeypatch: pytest.MonkeyPatch) -> None:
     """Checked Git failures include the failed git subcommand."""
 
-    def fake_run(
-        args: list[str],
-        *,
-        check: bool,
-        capture_output: bool,
-        encoding: str,
-        errors: str,
-        text: bool,
-    ) -> subprocess.CompletedProcess[str]:
+    def fake_run(args: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
+        assert kwargs == {
+            "capture_output": True,
+            "check": False,
+            "encoding": "utf-8",
+            "errors": "replace",
+            "text": True,
+        }
         return subprocess.CompletedProcess(args, 1, stdout="", stderr="fatal: bad revision\n")
 
     monkeypatch.setattr("analyze_release_semver.shutil.which", _which_git)
@@ -110,16 +104,14 @@ def test_semver_key_returns_sentinel_for_invalid_tag() -> None:
 
 def test_latest_semver_tag_selects_latest_stable_release(monkeypatch: pytest.MonkeyPatch) -> None:
     """Stable SemVer tags are sorted after filtering invalid and prerelease tags."""
-    tag_output = "\n".join(
-        [
-            "v1.2.3-rc.1",
-            "1.2.4-beta.1",
-            "v01.2.3",
-            "v1.2.2",
-            "1.2.3+build.1",
-            "v1.2.3",
-            "not-semver",
-        ]
+    tag_output = (
+        "v1.2.3-rc.1\n"
+        "1.2.4-beta.1\n"
+        "v01.2.3\n"
+        "v1.2.2\n"
+        "1.2.3+build.1\n"
+        "v1.2.3\n"
+        "not-semver"
     )
     calls: list[list[str]] = []
 
@@ -174,6 +166,20 @@ def test_validate_git_revision_accepts_common_safe_refs() -> None:
     assert semver.validate_git_revision("HEAD", "--target") == "HEAD"
     assert semver.validate_git_revision("release/v1.2.3", "--target") == "release/v1.2.3"
     assert semver.validate_git_revision("v1.2.3+build.1", "--target") == "v1.2.3+build.1"
+
+
+def test_resolve_commit_uses_brace_free_commit_peeling(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Commit resolution avoids brace syntax that MSYS Git can mangle on Windows."""
+    calls: list[list[str]] = []
+
+    def fake_run_git(args: list[str]) -> semver.GitResult:
+        calls.append(args)
+        return semver.GitResult("target-sha", "")
+
+    monkeypatch.setattr(semver, "run_git", fake_run_git)
+
+    assert semver.resolve_commit("HEAD", "--target") == "target-sha"
+    assert calls == [["rev-parse", "--verify", "--end-of-options", "HEAD^0"]]
 
 
 def test_commit_classification_detects_release_impact() -> None:
@@ -311,6 +317,14 @@ def test_package_version_returns_none_for_missing_or_invalid_package_json(tmp_pa
     assert semver.package_version(tmp_path) is None
 
 
+def test_repository_root_path_converts_msys_paths_on_windows(monkeypatch: pytest.MonkeyPatch) -> None:
+    """MSYS Git roots are converted to paths Windows Python can read."""
+    monkeypatch.setattr(sys, "platform", "win32")
+
+    assert semver.repository_root_path("/c/Repos/project") == Path("C:/Repos/project")
+    assert semver.repository_root_path("/cygdrive/f/Repos/project") == Path("F:/Repos/project")
+
+
 def test_output_sanitizing_keeps_raw_classification_inputs_usable() -> None:
     """Sanitizing output must not mutate raw commit data used for classification."""
     commits: list[CommitRow] = [
@@ -319,7 +333,7 @@ def test_output_sanitizing_keeps_raw_classification_inputs_usable() -> None:
             "hash": "abc123",
             "short": "abc123",
             "subject": "feat!: unsafe\nsubject",
-        }
+        },
     ]
     changed_files: list[FileEntry] = [{"path": "src/public.ts", "status": "M"}]
     data = {
@@ -364,7 +378,7 @@ def test_sanitize_helpers_leave_empty_optional_fields_unmarked() -> None:
         "subject": "",
     }
     assert semver.sanitize_file_entry_for_output({"path": "", "status": "D"}) == {"path": "", "status": "D"}
-    assert semver.sanitize_output_data({"diff_stat": ""})["diff_stat"] == ""
+    assert not semver.sanitize_output_data({"diff_stat": ""})["diff_stat"]
 
 
 def test_public_surface_files_matches_representative_paths() -> None:
@@ -434,7 +448,7 @@ def test_summarize_renders_detected_and_empty_sections() -> None:
     assert "- README.md" in detected
     assert "Base tag: (none found)" in empty
     assert "package.json version" not in empty
-    assert empty.count("- none detected") == 2
+    assert empty.count("- none detected") == EXPECTED_EMPTY_SECTION_COUNT
     assert "Diff stat:\n(empty)" in empty
 
 
@@ -449,11 +463,11 @@ def test_main_outputs_json_for_detected_release_range(
     def fake_run_git(args: list[str], **kwargs: object) -> semver.GitResult:
         if args == ["rev-parse", "--show-toplevel"]:
             return semver.GitResult(str(tmp_path), "")
-        if args == ["rev-parse", "--verify", "--end-of-options", "HEAD^{commit}"]:
+        if args == ["rev-parse", "--verify", "--end-of-options", "HEAD^0"]:
             return semver.GitResult("target-sha", "")
         if args == ["tag", "--merged", "target-sha", "--list"]:
             return semver.GitResult("v1.0.0", "")
-        if args == ["rev-parse", "--verify", "--end-of-options", "v1.0.0^{commit}"]:
+        if args == ["rev-parse", "--verify", "--end-of-options", "v1.0.0^0"]:
             return semver.GitResult("base-sha", "")
         raise AssertionError(f"unexpected git args: {args} {kwargs}")
 
@@ -490,7 +504,7 @@ def test_main_outputs_text_for_initial_release(
     def fake_run_git(args: list[str], **kwargs: object) -> semver.GitResult:
         if args == ["rev-parse", "--show-toplevel"]:
             return semver.GitResult(str(tmp_path), "")
-        if args == ["rev-parse", "--verify", "--end-of-options", "HEAD^{commit}"]:
+        if args == ["rev-parse", "--verify", "--end-of-options", "HEAD^0"]:
             return semver.GitResult("target-sha", "")
         if args == ["tag", "--merged", "target-sha", "--list"]:
             return semver.GitResult("", "")
@@ -530,7 +544,7 @@ def test_main_returns_error_for_git_failure(
     monkeypatch.setattr(semver, "run_git", fake_run_git)
     monkeypatch.setattr(sys, "argv", ["analyze_release_semver.py"])
 
-    assert semver.main() == 2
+    assert semver.main() == CLI_FAILURE_EXIT_CODE
     assert capsys.readouterr().err == "git failed\n"
 
 

@@ -50,6 +50,7 @@
         ignore = [
             "ANN401", # Boundary payloads may be intentionally dynamic JSON.
             "COM812", # Conflicts with the formatter.
+            "CPY001", # Project-level Unlicense text is sufficient; per-file notices are not required.
             "D203",   # Incompatible with D211.
             "D213",   # Incompatible with D212.
             "INP001", # Direct-execution helper folders are not always import packages.

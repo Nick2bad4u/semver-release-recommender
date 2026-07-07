@@ -153,7 +153,7 @@ def validate_git_revision(value: str, argument_name: str) -> str:
 def resolve_commit(revision: str, argument_name: str) -> str:
     """Validate and resolve a revision to a commit hash before later Git use."""
     safe_revision = validate_git_revision(revision, argument_name)
-    return run_git(["rev-parse", "--verify", "--end-of-options", f"{safe_revision}^{{commit}}"]).stdout
+    return run_git(["rev-parse", "--verify", "--end-of-options", f"{safe_revision}^0"]).stdout
 
 
 def _parse_conventional_header(subject: str) -> CommitHeader | None:
@@ -256,7 +256,7 @@ def commit_rows(revision_range: str) -> list[dict[str, str]]:
     ).stdout
     rows: list[dict[str, str]] = []
     fields = output.split("\x00")
-    if fields and fields[-1] == "":
+    if fields and not fields[-1]:
         _ = fields.pop()
     for index in range(0, len(fields) - 3, 4):
         full_hash, short_hash, subject, body = fields[index : index + 4]
@@ -280,7 +280,7 @@ def changed_files(base: str | None, target: str) -> list[dict[str, str]]:
     output = run_git(args, strip_output=False).stdout
     files: list[dict[str, str]] = []
     fields = output.split("\x00")
-    if fields and fields[-1] == "":
+    if fields and not fields[-1]:
         _ = fields.pop()
     index = 0
     while index < len(fields):
@@ -307,6 +307,25 @@ def diff_stat(base: str | None, target: str) -> str:
     if base:
         return run_git(["diff", "--stat", f"{base}..{target}"]).stdout
     return run_git(["diff", "--stat", EMPTY_TREE, target]).stdout
+
+
+def repository_root_path(root: str) -> Path:
+    """Return a Python-readable path from Git's repository root output."""
+    root_path = Path(root)
+    if root_path.exists() or sys.platform != "win32":
+        return root_path
+
+    msys_match = re.fullmatch(r"/([A-Za-z])/(.*)", root)
+    if msys_match:
+        drive, tail = msys_match.groups()
+        return Path(f"{drive.upper()}:/{tail}")
+
+    cygwin_match = re.fullmatch(r"/cygdrive/([A-Za-z])/(.*)", root)
+    if cygwin_match:
+        drive, tail = cygwin_match.groups()
+        return Path(f"{drive.upper()}:/{tail}")
+
+    return root_path
 
 
 def package_version(repository_root: Path) -> str | None:
@@ -430,15 +449,12 @@ def summarize(data: dict[str, Any]) -> str:
             lines.extend(f"- {impact}: {item}" for item in signals.get(impact, []))
     else:
         lines.append("- none detected")
-    lines.append("")
-    lines.append("Public-surface candidate files:")
+    lines.extend(("", "Public-surface candidate files:"))
     if data["public_surface_files"]:
         lines.extend(f"- {path}" for path in data["public_surface_files"])
     else:
         lines.append("- none detected")
-    lines.append("")
-    lines.append("Diff stat:")
-    lines.append(data["diff_stat"] or "(empty)")
+    lines.extend(("", "Diff stat:", data["diff_stat"] or "(empty)"))
     return "\n".join(lines)
 
 
@@ -452,7 +468,7 @@ def main() -> int:
 
     try:
         root = run_git(["rev-parse", "--show-toplevel"]).stdout
-        repository_root = Path(root)
+        repository_root = repository_root_path(root)
         target = validate_git_revision(args.target, "--target")
         target_commit = resolve_commit(target, "--target")
         detected_base = args.base_tag or latest_semver_tag(target_commit)
