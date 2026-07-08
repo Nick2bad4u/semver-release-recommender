@@ -9,3 +9,5 @@ __pycache__/
 .env.*
 .cache/
 coverage/
+.lychee.report.md
+.lycheecache
