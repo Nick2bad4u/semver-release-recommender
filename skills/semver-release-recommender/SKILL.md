@@ -55,14 +55,17 @@ Current version: 1.4.2
 Next version: 1.5.0
 
 Why:
+
 - Minor: added `new-option` CLI flag and documented it.
 - Patch-level: fixed parsing bug and updated tests.
 - No major evidence: public exports, required engines, peer dependencies, and documented config keys are unchanged.
 
 Checks:
+
 - Reviewed commits, changed files, package metadata, and public docs.
 - Ran `python skills/semver-release-recommender/scripts/analyze_release_semver.py`.
 
 Residual risk:
+
 - Generated API docs were not available, so type-level compatibility was inferred from source and declarations.
 ```

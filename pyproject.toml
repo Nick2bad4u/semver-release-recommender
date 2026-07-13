@@ -1,78 +1,16 @@
-[tool.ruff]
-    force-exclude = true
-    line-length = 120
-    required-version = ">=0.15.20"
-    show-fixes = true
-    target-version = "py314"
-    src = [ "." ]
-    respect-gitignore = true
-    indent-width = 4
-    cache-dir = ".cache/.ruff_cache"
-    extend-exclude = [
-        ".bzr",
-        ".cache",
-        ".git",
-        ".hg",
-        ".mypy_cache",
-        ".nox",
-        ".pytest_cache",
-        ".ruff_cache",
-        ".svn",
-        ".tox",
-        ".venv",
-        "__pycache__",
-        "__pypackages__",
-        "build",
-        "coverage",
-        "dist",
-        "env",
-        "htmlcov",
-        "node_modules",
-        "site-packages",
-        "third_party",
-        "tmp",
-        "vendor",
-        "venv"
-    ]
+[tool.coverage.run]
+    branch    = true
+    data_file = "coverage/.coverage"
+    include   = [ "skills/semver-release-recommender/scripts/**/*.py" ]
 
-    [tool.ruff.format]
-        docstring-code-format = true
-        line-ending           = "lf"
-        quote-style           = "double"
+[tool.coverage.report]
+    fail_under   = 75
+    precision    = 2
+    show_missing = true
+    skip_covered = false
 
-    [tool.ruff.analyze]
-        detect-string-imports = true
-        direction             = "dependencies"
-        type-checking-imports = true
-
-    [tool.ruff.lint]
-        select = [ "ALL" ]
-        ignore = [
-            "ANN401", # Boundary payloads may be intentionally dynamic JSON.
-            "COM812", # Conflicts with the formatter.
-            "CPY001", # Project-level Unlicense text is sufficient; per-file notices are not required.
-            "D203",   # Incompatible with D211.
-            "D213",   # Incompatible with D212.
-            "INP001", # Direct-execution helper folders are not always import packages.
-            "EM101",  # CLI errors are clearer inline at the call site.
-            "EM102",  # CLI errors are clearer inline at the call site.
-            "ISC001", # Conflicts with the formatter.
-            "TRY003"  # CLI errors are clearer inline at the call site.
-        ]
-        fixable = [ "ALL" ]
-        unfixable = [
-            "ERA", # Do not delete commented context automatically.
-            "F401" # Keep import removal explicit in review.
-        ]
-
-        [tool.ruff.lint.pydocstyle]
-            convention = "google"
-
-        [tool.ruff.lint.flake8-type-checking]
-            strict = true
-
-        [tool.ruff.lint.per-file-ignores]
-            "tests/**/*.py" = [ "S101" ] # pytest uses assert rewriting.
+[tool.coverage.xml]
+    output = "coverage/python/coverage.xml"
 
 [tool.mypy]
     python_version = "3.14"
@@ -278,22 +216,16 @@
     reportUnknownVariableType = "error"
 
 [tool.pytest.ini_options]
-    addopts = [
-        "--strict-config",
-        "--strict-markers",
-        "--import-mode=importlib"
-    ]
+    addopts = [ "--strict-config", "--strict-markers", "--import-mode=importlib" ]
+    cache_dir = ".cache/.pytest_cache"
+    console_output_style = "progress"
+    doctest_encoding = "utf-8"
     filterwarnings = [ "error" ]
     junit_duration_report = "call"
     junit_family = "xunit2"
-    doctest_encoding = "utf-8"
-    console_output_style = "progress"
-    junit_logging = "log"
     junit_log_passing_tests = true
+    junit_logging = "log"
     junit_suite_name = "python-junit"
-    pythonpath = [ ".", "skills/semver-release-recommender/scripts" ]
-    cache_dir = ".cache/.pytest_cache"
-    testpaths = [ "." ]
     norecursedirs = [
         ".*",
         "__pycache__",
@@ -310,22 +242,86 @@
         "vendor",
         "venv"
     ]
+    pythonpath = [ ".", "skills/semver-release-recommender/scripts" ]
     strict = true
     strict_config = true
     strict_markers = true
     strict_parametrization_ids = true
     strict_xfail = true
+    testpaths = [ "." ]
 
-[tool.coverage.run]
-    branch = true
-    data_file = "coverage/.coverage"
-    include = [ "skills/semver-release-recommender/scripts/**/*.py" ]
+[tool.ruff]
+    force-exclude = true
+    line-length = 120
+    required-version = ">=0.15.20"
+    show-fixes = true
+    target-version = "py314"
+    src = [ "." ]
+    respect-gitignore = true
+    indent-width = 4
+    cache-dir = ".cache/.ruff_cache"
+    extend-exclude = [
+        ".bzr",
+        ".cache",
+        ".git",
+        ".hg",
+        ".mypy_cache",
+        ".nox",
+        ".pytest_cache",
+        ".ruff_cache",
+        ".svn",
+        ".tox",
+        ".venv",
+        "__pycache__",
+        "__pypackages__",
+        "build",
+        "coverage",
+        "dist",
+        "env",
+        "htmlcov",
+        "node_modules",
+        "site-packages",
+        "third_party",
+        "tmp",
+        "vendor",
+        "venv"
+    ]
 
-[tool.coverage.report]
-    fail_under = 75
-    precision = 2
-    show_missing = true
-    skip_covered = false
+    [tool.ruff.format]
+        docstring-code-format = true
+        line-ending           = "lf"
+        quote-style           = "double"
 
-[tool.coverage.xml]
-    output = "coverage/python/coverage.xml"
+    [tool.ruff.analyze]
+        detect-string-imports = true
+        direction             = "dependencies"
+        type-checking-imports = true
+
+    [tool.ruff.lint]
+        select = [ "ALL" ]
+        ignore = [
+            "ANN401", # Boundary payloads may be intentionally dynamic JSON.
+            "COM812", # Conflicts with the formatter.
+            "CPY001", # Project-level Unlicense text is sufficient; per-file notices are not required.
+            "D203",   # Incompatible with D211.
+            "D213",   # Incompatible with D212.
+            "INP001", # Direct-execution helper folders are not always import packages.
+            "EM101",  # CLI errors are clearer inline at the call site.
+            "EM102",  # CLI errors are clearer inline at the call site.
+            "ISC001", # Conflicts with the formatter.
+            "TRY003"  # CLI errors are clearer inline at the call site.
+        ]
+        fixable = [ "ALL" ]
+        unfixable = [
+            "ERA", # Do not delete commented context automatically.
+            "F401" # Keep import removal explicit in review.
+        ]
+
+        [tool.ruff.lint.pydocstyle]
+            convention = "google"
+
+        [tool.ruff.lint.flake8-type-checking]
+            strict = true
+
+        [tool.ruff.lint.per-file-ignores]
+            "tests/**/*.py" = [ "S101" ] # pytest uses assert rewriting.

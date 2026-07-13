@@ -1,118 +1,126 @@
 {
-  "name": "semver-release-recommender-skill",
-  "version": "1.0.0",
-  "private": false,
-  "description": "Codex skill for analyzing release changes and recommending a semantic version bump.",
-  "keywords": [
-    "agent-skill",
-    "agent-skills",
-    "ai-agent",
-    "codex",
-    "openai",
-    "release",
-    "semantic-versioning",
-    "semver",
-    "universal",
-    "versioning"
-  ],
-  "homepage": "https://github.com/Nick2bad4u/semver-release-recommender#readme",
-  "bugs": {
-    "url": "https://github.com/Nick2bad4u/semver-release-recommender/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Nick2bad4u/semver-release-recommender.git"
-  },
-  "license": "Unlicense",
-  "author": "Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> (https://github.com/Nick2bad4u)",
-  "contributors": [
-    {
-      "name": "Nick2bad4u",
-      "email": "20943337+Nick2bad4u@users.noreply.github.com",
-      "url": "https://github.com/Nick2bad4u"
+    "name": "semver-release-recommender-skill",
+    "version": "1.0.0",
+    "private": false,
+    "description": "Codex skill for analyzing release changes and recommending a semantic version bump.",
+    "keywords": [
+        "agent-skill",
+        "agent-skills",
+        "ai-agent",
+        "codex",
+        "openai",
+        "release",
+        "semantic-versioning",
+        "semver",
+        "universal",
+        "versioning"
+    ],
+    "homepage": "https://github.com/Nick2bad4u/semver-release-recommender#readme",
+    "bugs": {
+        "url": "https://github.com/Nick2bad4u/semver-release-recommender/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Nick2bad4u/semver-release-recommender.git"
+    },
+    "license": "Unlicense",
+    "author": "Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> (https://github.com/Nick2bad4u)",
+    "contributors": [
+        {
+            "name": "Nick2bad4u",
+            "email": "20943337+Nick2bad4u@users.noreply.github.com",
+            "url": "https://github.com/Nick2bad4u"
+        }
+    ],
+    "type": "module",
+    "files": [
+        "skills/semver-release-recommender/SKILL.md",
+        "skills/semver-release-recommender/LICENSE.txt",
+        "skills/semver-release-recommender/agents/",
+        "skills/semver-release-recommender/assets/",
+        "skills/semver-release-recommender/references/",
+        "skills/semver-release-recommender/scripts/analyze_release_semver.py",
+        "CHANGELOG.md",
+        "CONTRIBUTING.md",
+        "README.md",
+        "SECURITY.md"
+    ],
+    "scripts": {
+        "changelog:generate": "git cliff --config node_modules/gitcliff-config-nick2bad4u/cliff.toml --github-repo Nick2bad4u/semver-release-recommender --output CHANGELOG.md",
+        "changelog:preview": "git cliff --config node_modules/gitcliff-config-nick2bad4u/cliff.toml --github-repo Nick2bad4u/semver-release-recommender --unreleased",
+        "changelog:release-notes": "git cliff --config node_modules/gitcliff-config-nick2bad4u/cliff.toml --github-repo Nick2bad4u/semver-release-recommender --current",
+        "check:python": "npm run lint:python && npm run typecheck:python && npm run test:python && python -m compileall -q -x \"[\\\\/]\\.\" skills tests",
+        "check:python:unsafe": "npm run lint:python:unsafe && npm run typecheck:python && npm run test:python && python -m compileall -q -x \"[\\\\/]\\.\" skills tests",
+        "coverage:python": "python -c \"from pathlib import Path; Path('coverage/pytest').mkdir(parents=True, exist_ok=True); Path('coverage/python').mkdir(parents=True, exist_ok=True)\" && node tools/run-python-coverage.mjs",
+        "format:python": "npm run ruff:format && npm run ruff:fix",
+        "lint": "eslint --cache --cache-strategy content --cache-location .cache/.eslintcache",
+        "lint:gitleaks": "gitleaks dir --config .gitleaks.toml .",
+        "lint:jscpd": "jscpd --config node_modules/jscpd-config-nick2bad4u/jscpd.json",
+        "lint:lychee": "lychee --config node_modules/lychee-config-nick2bad4u/lychee.toml .",
+        "lint:lychee:smoke": "lychee --config node_modules/lychee-config-nick2bad4u/lychee.toml --dump-inputs README.md",
+        "lint:package-json": "npmPkgJsonLint . --config .npmpackagejsonlintrc.json",
+        "lint:python": "npm run ruff:check && npm run ruff:format:check",
+        "lint:python:unsafe": "npm run ruff:check:unsafe && npm run ruff:fix:unsafe",
+        "lint:remark": "remark . --frail --ignore-path .remarkignore",
+        "lint:remark:fix": "remark . --ignore-path .remarkignore --output",
+        "lint:yamllint": "yamllint -c .yamllint .",
+        "pack:dry-run": "npm pack --dry-run",
+        "publish:local": "npm run release:verify && npm publish --access public",
+        "pyright": "pyright",
+        "python:bootstrap": "python -m pip install -r requirements-dev.txt",
+        "python:venv": "python -m venv .venv && .venv\\Scripts\\activate && python -m pip install --upgrade pip && python -m pip install -r requirements-dev.txt",
+        "python:venv:activate": ". .\\.venv\\Scripts\\Activate.ps1",
+        "python:venv:deactivate": ". .\\.venv\\Scripts\\Deactivate.ps1",
+        "release:verify": "npm run validate && npm run pack:dry-run",
+        "ruff:check": "ruff check skills/semver-release-recommender/scripts tests/**",
+        "ruff:check:unsafe": "ruff check --unsafe-fixes skills/semver-release-recommender/scripts tests/**",
+        "ruff:fix": "ruff check --fix skills/semver-release-recommender/scripts tests/**",
+        "ruff:fix:unsafe": "ruff check --fix --unsafe-fixes skills/semver-release-recommender/scripts tests/**",
+        "ruff:format": "ruff format skills/semver-release-recommender/scripts tests/**",
+        "ruff:format:check": "ruff format --check skills/semver-release-recommender/scripts tests/**",
+        "skillcheck": "skillcheck --history skills/semver-release-recommender/SKILL.md --fail-on-regression",
+        "test": "npm run test:python",
+        "test:python": "npm run coverage:python",
+        "typecheck:python": "mypy && pyright",
+        "update-actions": "npx actions-up --yes --style sha",
+        "update-deps": "ncu --configFileName .ncurc.json --configFilePath node_modules/ncu-config-nick2bad4u && npm update --force && npm install --force",
+        "validate": "node tools/validate-skill-package.mjs && python -c \"from pathlib import Path; script = Path('skills/semver-release-recommender/scripts/analyze_release_semver.py'); compile(script.read_text(encoding='utf-8'), str(script), 'exec')\" && npm run test"
+    },
+    "devDependencies": {
+        "@microsoft/tsdoc-config": "^0.18.1",
+        "eslint": "^10.7.0",
+        "eslint-config-nick2bad4u": "^5.0.0",
+        "git-cliff": "^2.13.1",
+        "gitcliff-config-nick2bad4u": "^1.3.0",
+        "gitleaks-config-nick2bad4u": "^1.0.4",
+        "jscpd": "^5.0.12",
+        "jscpd-config-nick2bad4u": "^1.1.0",
+        "lychee-config-nick2bad4u": "^2.0.0",
+        "ncu-config-nick2bad4u": "^0.2.0",
+        "npm-check-updates": "^22.2.9",
+        "npm-package-json-lint": "^10.4.1",
+        "npm-package-json-lint-config-nick2bad4u": "^1.0.4",
+        "prettier": "^3.9.5",
+        "prettier-config-nick2bad4u": "^1.1.1",
+        "remark": "^15.0.1",
+        "remark-cli": "^12.0.1",
+        "remark-config-nick2bad4u": "^1.1.3",
+        "secretlint": "^13.0.2",
+        "secretlint-config-nick2bad4u": "^1.1.2",
+        "stylelint": "^17.14.0",
+        "stylelint-config-nick2bad4u": "^1.0.20",
+        "tsdoc-config-nick2bad4u": "^1.0.6",
+        "yamllint-config-nick2bad4u": "^1.1.1"
+    },
+    "engines": {
+        "node": ">=22.14"
+    },
+    "publishConfig": {
+        "provenance": true
+    },
+    "codexSkill": {
+        "name": "semver-release-recommender",
+        "path": "skills/semver-release-recommender",
+        "githubReleaseAssetPrefix": "semver-release-recommender-skill"
     }
-  ],
-  "type": "module",
-  "files": [
-    "skills/semver-release-recommender/SKILL.md",
-    "skills/semver-release-recommender/LICENSE.txt",
-    "skills/semver-release-recommender/agents/",
-    "skills/semver-release-recommender/assets/",
-    "skills/semver-release-recommender/references/",
-    "skills/semver-release-recommender/scripts/analyze_release_semver.py",
-    "CHANGELOG.md",
-    "CONTRIBUTING.md",
-    "README.md",
-    "SECURITY.md"
-  ],
-  "scripts": {
-    "lint": "eslint --cache --cache-strategy content --cache-location .cache/.eslintcache",
-    "lint:gitleaks": "gitleaks dir --config .gitleaks.toml .",
-    "lint:package-json": "npmPkgJsonLint . --config .npmpackagejsonlintrc.json",
-    "lint:remark": "remark . --frail --ignore-path .remarkignore",
-    "lint:remark:fix": "remark . --ignore-path .remarkignore --output",
-    "lint:yamllint": "yamllint -c .yamllint .",
-    "pack:dry-run": "npm pack --dry-run",
-    "publish:local": "npm run release:verify && npm publish --access public",
-    "release:verify": "npm run validate && npm run pack:dry-run",
-    "test": "npm run test:python",
-    "update-actions": "npx actions-up --yes --style sha",
-    "update-deps": "npx ncu -i --install never && npm update --force && npm install --force",
-    "validate": "node tools/validate-skill-package.mjs && python -c \"from pathlib import Path; script = Path('skills/semver-release-recommender/scripts/analyze_release_semver.py'); compile(script.read_text(encoding='utf-8'), str(script), 'exec')\" && npm run test",
-    "ruff:check:unsafe": "ruff check --unsafe-fixes skills/semver-release-recommender/scripts tests/**",
-    "ruff:fix:unsafe": "ruff check --fix --unsafe-fixes skills/semver-release-recommender/scripts tests/**",
-    "check:python": "npm run lint:python && npm run typecheck:python && npm run test:python && python -m compileall -q -x \"[\\\\/]\\.\" skills tests",
-    "check:python:unsafe": "npm run lint:python:unsafe && npm run typecheck:python && npm run test:python && python -m compileall -q -x \"[\\\\/]\\.\" skills tests",
-    "coverage:python": "python -c \"from pathlib import Path; Path('coverage/pytest').mkdir(parents=True, exist_ok=True); Path('coverage/python').mkdir(parents=True, exist_ok=True)\" && node tools/run-python-coverage.mjs",
-    "format:python": "npm run ruff:format && npm run ruff:fix",
-    "lint:python": "npm run ruff:check && npm run ruff:format:check",
-    "lint:python:unsafe": "npm run ruff:check:unsafe && npm run ruff:fix:unsafe",
-    "pyright": "pyright",
-    "python:bootstrap": "python -m pip install -r requirements-dev.txt",
-    "python:venv": "python -m venv .venv && .venv\\Scripts\\activate && python -m pip install --upgrade pip && python -m pip install -r requirements-dev.txt",
-    "python:venv:activate": ". .\\.venv\\Scripts\\Activate.ps1",
-    "python:venv:deactivate": ". .\\.venv\\Scripts\\Deactivate.ps1",
-    "ruff:check": "ruff check skills/semver-release-recommender/scripts tests/**",
-    "ruff:fix": "ruff check --fix skills/semver-release-recommender/scripts tests/**",
-    "ruff:format": "ruff format skills/semver-release-recommender/scripts tests/**",
-    "ruff:format:check": "ruff format --check skills/semver-release-recommender/scripts tests/**",
-    "test:python": "npm run coverage:python",
-    "typecheck:python": "mypy && pyright",
-    "skillcheck": "skillcheck --history skills/semver-release-recommender/SKILL.md --fail-on-regression",
-    "lint:jscpd": "jscpd --config node_modules/jscpd-config-nick2bad4u/jscpd.json",
-    "changelog:generate": "git cliff --config node_modules/gitcliff-config-nick2bad4u/cliff.toml --github-repo Nick2bad4u/semver-release-recommender --output CHANGELOG.md",
-    "changelog:preview": "git cliff --config node_modules/gitcliff-config-nick2bad4u/cliff.toml --github-repo Nick2bad4u/semver-release-recommender --unreleased",
-    "changelog:release-notes": "git cliff --config node_modules/gitcliff-config-nick2bad4u/cliff.toml --github-repo Nick2bad4u/semver-release-recommender --current",
-    "lint:lychee": "lychee --config node_modules/lychee-config-nick2bad4u/lychee.toml .",
-    "lint:lychee:smoke": "lychee --config node_modules/lychee-config-nick2bad4u/lychee.toml --dump-inputs README.md"
-  },
-  "devDependencies": {
-    "eslint": "^10.6.0",
-    "eslint-config-nick2bad4u": "^3.0.3",
-    "git-cliff": "^2.13.1",
-    "gitcliff-config-nick2bad4u": "^1.1.0",
-    "gitleaks-config-nick2bad4u": "^1.0.2",
-    "jscpd": "^5.0.12",
-    "jscpd-config-nick2bad4u": "^1.0.0",
-    "lychee-config-nick2bad4u": "^1.0.0",
-    "npm-package-json-lint": "^10.4.1",
-    "npm-package-json-lint-config-nick2bad4u": "^1.0.3",
-    "prettier": "^3.9.1",
-    "prettier-config-nick2bad4u": "^1.0.19",
-    "remark": "^15.0.1",
-    "remark-cli": "^12.0.1",
-    "remark-config-nick2bad4u": "^1.1.2",
-    "yamllint-config-nick2bad4u": "^1.1.0"
-  },
-  "engines": {
-    "node": ">=22.14"
-  },
-  "publishConfig": {
-    "provenance": true
-  },
-  "codexSkill": {
-    "name": "semver-release-recommender",
-    "path": "skills/semver-release-recommender",
-    "githubReleaseAssetPrefix": "semver-release-recommender-skill"
-  }
 }

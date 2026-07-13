@@ -10,8 +10,17 @@ const config = [
         allowDefaultProjectFilePatterns: [],
     }),
     {
+        name: "Existing skill release workflow",
         rules: {
             "copilot/require-skill-file-location": "off",
+            "repo-compliance/require-release-config-file": "off",
+        },
+    },
+    {
+        files: ["stylelint.config.mjs"],
+        name: "Stylelint configuration import",
+        rules: {
+            "@typescript-eslint/no-unsafe-assignment": "off",
         },
     },
 ];

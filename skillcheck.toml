@@ -7,7 +7,4 @@ target-agent   = "all"
 semantic       = true
 
 [frontmatter]
-    extension_fields = [
-        "license",
-        "metadata"
-    ]
+    extension_fields = [ "license", "metadata" ]
